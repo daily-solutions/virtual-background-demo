@@ -1,6 +1,10 @@
 import React, { useCallback } from "react";
-import Daily from "@daily-co/daily-js";
-import { DailyEvent, DailyEventObject } from "@daily-co/daily-js";
+import Daily, {
+  DailyEventObjectInputSettingsUpdated,
+  DailyEventObjectNonFatalError,
+  DailyEventObjectTrack,
+} from "@daily-co/daily-js";
+import { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -94,20 +98,22 @@ export default function App() {
   };
 
   // handle events
-  function meetingJoined(evt: EventCallback) {
+  const meetingJoined: EventCallback = (evt) => {
     console.log("You joined the meeting: ", evt);
-  }
-  function participantJoined(evt: EventCallback) {
+  };
+
+  const participantJoined: EventCallback = (evt) => {
     console.log("Participant joined meeting: ", evt);
-  }
-  function updateParticipant(evt: EventCallback) {
+  };
+
+  const updateParticipant: EventCallback = (evt) => {
     console.log("Participant updated: ", evt);
-  }
+  };
 
   // mount the tracks from the track-started events
-  function startTrack(evt: any) {
+  const startTrack = (evt: DailyEventObjectTrack) => {
     console.log("Track started: ", evt);
-    if (evt.track.kind === "audio" && evt.participant.local === false) {
+    if (evt.track.kind === "audio" && evt.participant?.local === false) {
       let audiosDiv = document.getElementById("audios");
       let audioEl = document.createElement("audio");
 
@@ -142,10 +148,10 @@ export default function App() {
       videoEl.play();
       console.log("videoEl: ", videoEl);
     }
-  }
+  };
 
   // Listen to track-stopped events and remove the video / audio elements
-  function stopTrack(evt: any) {
+  function stopTrack(evt: DailyEventObjectTrack) {
     console.log("Track stopped: ", evt);
     if (evt.track.kind === "audio") {
       let audios = document.getElementsByTagName("audio");
@@ -218,11 +224,14 @@ export default function App() {
   useDailyEvent("participant-updated", updateParticipant);
 
   // Error logging for background effects
-  useDailyEvent("input-settings-updated", (evt) => {
-    console.log("input-settings-updated", evt);
-  });
+  useDailyEvent(
+    "input-settings-updated",
+    (evt: DailyEventObjectInputSettingsUpdated) => {
+      console.log("input-settings-updated", evt);
+    }
+  );
 
-  useDailyEvent("nonfatal-error", (evt) => {
+  useDailyEvent("nonfatal-error", (evt: DailyEventObjectNonFatalError) => {
     console.log("nonfatal-error", evt);
   });
 
