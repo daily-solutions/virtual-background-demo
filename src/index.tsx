@@ -21,7 +21,7 @@ const container = document.getElementById("root");
 const root = createRoot(container!);
 root.render(
   <StrictMode>
-    <DailyProvider callObject={callObject} url="https://hush.daily.co/demo">
+    <DailyProvider callObject={callObject}>
       <App />
     </DailyProvider>
   </StrictMode>

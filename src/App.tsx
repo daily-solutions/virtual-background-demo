@@ -84,6 +84,7 @@ export default function App() {
     }
     callObject
       .join({
+        // Replace with your own room url
         url: "https://hush.daily.co/demo",
       })
       .catch((err) => {
