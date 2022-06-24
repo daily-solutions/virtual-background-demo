@@ -21,6 +21,9 @@ type EventCallback = (events: DailyEventObject[]) => void;
 export default function App() {
   const callObject = useDaily();
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const room = queryParams.get("room");
+
   const {
     cameras,
     setCamera,
@@ -86,10 +89,13 @@ export default function App() {
     if (!callObject) {
       return;
     }
+
+    console.log(room);
+
     callObject
       .join({
         // Replace with your own room url
-        url: "https://hush.daily.co/demo",
+        url: `https://${room}`,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -238,6 +244,8 @@ export default function App() {
   return (
     <>
       <div className="App">
+        {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}{" "}
+        <br />
         1. Select your device <br />
         <select
           id="video-devices"
