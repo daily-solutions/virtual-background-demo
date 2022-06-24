@@ -244,9 +244,16 @@ export default function App() {
   return (
     <>
       <div className="App">
-        {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}{" "}
         <br />
-        1. Select your device <br />
+        1. Join the call
+        <br />
+        {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
+        <br />
+        <button onClick={() => joinRoom()}>Join call</button>
+        <br />
+        <hr />
+        <br />
+        2. Select your device <br />
         <select
           id="video-devices"
           value={currentCamera?.device?.deviceId}
@@ -290,11 +297,6 @@ export default function App() {
         </select>
         <br />
         <br />
-        2. Join the call
-        <br />
-        <button onClick={() => joinRoom()}>Join call</button> <br />
-        <br />
-        <hr />
         <button onClick={() => enableBlur()}>Enable Blur</button>
         <button onClick={() => enableBackground()}>Enable Background</button>
         <button onClick={() => leaveRoom()}>Leave call</button>
