@@ -9,16 +9,16 @@ import App from "./App";
 // Account & room settings
 const dailyConfig: DailyCallOptions["dailyConfig"] = {
   experimentalChromeVideoMuteLightOff: true,
-  useDevicePreferenceCookies: true
+  useDevicePreferenceCookies: true,
 };
 
 const callObject = Daily.createCallObject({
   subscribeToTracksAutomatically: true,
-  dailyConfig
+  dailyConfig,
 });
 
 const container = document.getElementById("root");
-const root = createRoot(container); // createRoot(container!) if you use TypeScript
+const root = createRoot(container!);
 root.render(
   <StrictMode>
     <DailyProvider callObject={callObject} url="https://hush.daily.co/demo">
