@@ -170,8 +170,8 @@ export default function App() {
     } else if (evt.track.kind === "video") {
       let vids = document.getElementsByTagName("video");
       for (let vid of vids) {
-        // @ts-ignore
-        if (vid.srcObject && vid.srcObject.getVideoTracks()[0] === evt.track) {
+        const stream = vid.srcObject as MediaStream;
+        if (stream.getVideoTracks()[0] === evt.track) {
           vid.remove();
         }
       }
