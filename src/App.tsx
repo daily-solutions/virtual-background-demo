@@ -2,9 +2,10 @@ import React from "react";
 import Daily, {
   DailyEventObjectInputSettingsUpdated,
   DailyEventObjectNonFatalError,
+  DailyEventObjectParticipant,
+  DailyEventObjectParticipants,
   DailyEventObjectTrack,
 } from "@daily-co/daily-js";
-import { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -15,8 +16,6 @@ import {
 import "./styles.css";
 
 console.log("Daily version: %s", Daily.version());
-
-type EventCallback = (events: DailyEventObject[]) => void;
 
 export default function App() {
   const callObject = useDaily();
@@ -104,15 +103,15 @@ export default function App() {
   };
 
   // handle events
-  const meetingJoined: EventCallback = (evt) => {
+  const meetingJoined = (evt: DailyEventObjectParticipants) => {
     console.log("You joined the meeting: ", evt);
   };
 
-  const participantJoined: EventCallback = (evt) => {
+  const participantJoined = (evt: DailyEventObjectParticipant) => {
     console.log("Participant joined meeting: ", evt);
   };
 
-  const updateParticipant: EventCallback = (evt) => {
+  const updateParticipant = (evt: DailyEventObjectParticipant) => {
     console.log("Participant updated: ", evt);
   };
 
