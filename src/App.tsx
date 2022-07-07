@@ -191,6 +191,14 @@ export default function App() {
     });
   }
 
+  function shareScreen() {
+    callObject?.startScreenShare();
+  }
+
+  function stopShareScreen() {
+    callObject?.stopScreenShare();
+  }
+
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
     console.log("!!! changing video device");
@@ -299,6 +307,8 @@ export default function App() {
         <button onClick={() => enableBlur()}>Enable Blur</button>
         <button onClick={() => enableBackground()}>Enable Background</button>
         <button onClick={() => leaveRoom()}>Leave call</button>
+        <button onClick={() => shareScreen()}>Share Screen</button>
+        <button onClick={() => stopShareScreen()}>Stop Share Screen</button>
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
