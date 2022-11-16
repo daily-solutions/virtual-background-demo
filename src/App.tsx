@@ -2,6 +2,7 @@ import React from "react";
 import Daily, {
   DailyEventObjectInputSettingsUpdated,
   DailyEventObjectNonFatalError,
+  DailyEventObjectNoPayload,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
   DailyEventObjectTrack,
@@ -83,6 +84,16 @@ export default function App() {
       });
   }
 
+  function toggleMic() {
+    if (!callObject) {
+      return;
+    }
+
+    callObject.setInputDevices({
+      audioSource: false,
+    });
+  }
+
   // Join the room with the generated token
   const joinRoom = () => {
     if (!callObject) {
@@ -113,6 +124,10 @@ export default function App() {
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
     console.log("Participant updated: ", evt);
+    console.log(
+      "- persistentTrack muted: ",
+      evt.participant.tracks.video.persistentTrack?.muted
+    );
   };
 
   // mount the tracks from the track-started events
@@ -240,6 +255,49 @@ export default function App() {
     console.log("nonfatal-error", evt);
   });
 
+  function handleJoinAndLeave(evt: DailyEventObjectNoPayload) {
+    console.log("DAILY", evt);
+    isLeaving.current = false;
+    co.join({
+      url: `https://remo-test.daily.co/${data.name}`,
+    });  
+  }
+
+  useDailyEvent("left-meeting", handleJoinAndLeave);
+
+  useDailyEvent("joining-meeting", handleJoinAndLeave);
+  
+  useDailyEvent("joined-meeting", (evt: DailyEventObjectParticipants) => {
+    console.log("joined-meeting");
+    if (!isLeaving.current) {
+      console.log("DAILY: LEAVE");
+      isLeaving.current = true;
+      co.leave();
+    }
+  });
+
+  useEffect(() => {
+    const meetingState = co?.meetingState();
+    if (
+      co &&
+      data?.name &&
+      (meetingState === "left-meeting" || meetingState === "new")
+    ) {
+      console.log("DAILY: JOIN");
+      isLeaving.current = false;
+      co.join({
+        url: `https://remo-test.daily.co/${data.name}`,
+      });
+    }
+    return () => {
+      if (co && co?.meetingState() === "joined-meeting" && !isLeaving.current) {
+        console.log("DAILY: LEAVE");
+        isLeaving.current = true;
+        co.leave();
+      }
+    };
+  }, [co, data?.name]);
+
   return (
     <>
       <div className="App">
@@ -298,7 +356,8 @@ export default function App() {
         <br />
         <button onClick={() => enableBlur()}>Enable Blur</button>
         <button onClick={() => enableBackground()}>Enable Background</button>
-        <button onClick={() => leaveRoom()}>Leave call</button>
+        <button onClick={() => leaveRoom()}>Leave Call</button>
+        <button onClick={() => toggleMic()}>Toggle Mic</button>
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
