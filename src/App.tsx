@@ -111,7 +111,19 @@ export default function App() {
     console.log("joined!");
   };
 
+  const startCamera = () => {
+    if (!callObject) {
+      return;
+    }
+
+    callObject.startCamera();
+  };
+
   // handle events
+  const startedCamera = () => {
+    console.log("started camera");
+  };
+
   const meetingJoined = (evt: DailyEventObjectParticipants) => {
     console.log("You joined the meeting: ", evt);
   };
@@ -237,6 +249,8 @@ export default function App() {
 
   useDailyEvent("participant-updated", updateParticipant);
 
+  useDailyEvent("started-camera", startedCamera);
+
   // Error logging for background effects
   useDailyEvent(
     "input-settings-updated",
@@ -313,10 +327,12 @@ export default function App() {
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
+        <button onClick={() => startCamera()}>Start Camera</button> <br />
         <br />
       </div>
       <div id="videos"></div>
       <div id="audios"></div>
+      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
     </>
   );
 }
