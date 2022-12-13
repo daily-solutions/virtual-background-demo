@@ -111,7 +111,28 @@ export default function App() {
     console.log("joined!");
   };
 
+  const startCamera = () => {
+    if (!callObject) {
+      return;
+    }
+
+    callObject.startCamera();
+  };
+
+  const preAuth = () => {
+    if (!callObject) {
+      return;
+    }
+    callObject.preAuth({
+      url: `https://${room}`,
+    });
+  };
+
   // handle events
+  const startedCamera = () => {
+    console.log("started camera");
+  };
+
   const meetingJoined = (evt: DailyEventObjectParticipants) => {
     console.log("You joined the meeting: ", evt);
   };
@@ -227,7 +248,33 @@ export default function App() {
     });
   }
 
+  function stopCamera() {
+    if (!callObject) {
+      return;
+    }
+    callObject.updateParticipant("local", {
+      setAudio: false,
+      setVideo: false,
+    });
+  }
+
+  function updateCameraOn() {
+    if (!callObject) {
+      return;
+    }
+    callObject.updateParticipant("local", {
+      setAudio: true,
+      setVideo: true,
+    });
+  }
+
+  function logEvent(evt: any) {
+    console.log("logEvent: ", evt);
+  }
+
   useDailyEvent("joined-meeting", meetingJoined);
+
+  useDailyEvent("joining-meeting", logEvent);
 
   useDailyEvent("track-started", startTrack);
 
@@ -236,6 +283,28 @@ export default function App() {
   useDailyEvent("participant-joined", participantJoined);
 
   useDailyEvent("participant-updated", updateParticipant);
+
+  useDailyEvent("started-camera", startedCamera);
+
+  useDailyEvent("input-settings-updated", logEvent);
+
+  useDailyEvent("loading", logEvent);
+
+  useDailyEvent("loaded", logEvent);
+
+  useDailyEvent("receive-settings-updated", logEvent);
+
+  useDailyEvent("left-meeting", logEvent);
+
+  useDailyEvent("participant-left", logEvent);
+
+  useDailyEvent("network-connection", logEvent);
+
+  useDailyEvent("network-quality-change", logEvent);
+
+  useDailyEvent("camera-error", (evt) => {
+    console.log("camera-error", evt);
+  });
 
   // Error logging for background effects
   useDailyEvent(
@@ -248,6 +317,11 @@ export default function App() {
   useDailyEvent("nonfatal-error", (evt: DailyEventObjectNonFatalError) => {
     console.log("nonfatal-error", evt);
   });
+
+  const hiddenParticipantCount = callObject?.participantCounts().hidden ?? 0;
+  const presentParticipantCount = callObject?.participantCounts().present ?? 0;
+
+  const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
   return (
     <>
@@ -313,10 +387,17 @@ export default function App() {
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
+        <button onClick={() => preAuth()}>Preauth</button> <br />
+        <button onClick={() => startCamera()}>Start Camera</button> <br />
+        <button onClick={() => stopCamera()}>Publish Camera Off</button> <br />
+        <button onClick={() => updateCameraOn()}>Publish Camera On</button>{" "}
+        <br />
         <br />
       </div>
       <div id="videos"></div>
       <div id="audios"></div>
+      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
+      <div id="participantCount">Participant Counts: {participantCounts}</div>
     </>
   );
 }
