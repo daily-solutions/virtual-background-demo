@@ -5,7 +5,6 @@ import Daily, {
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
-  DailyEventObjectTrack,
 } from "@daily-co/daily-js";
 
 import {
@@ -13,6 +12,10 @@ import {
   useDevices,
   useDailyEvent,
   useScreenShare,
+  DailyVideo,
+  useParticipantIds,
+  useActiveSpeakerId,
+  DailyAudio,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -21,6 +24,8 @@ console.log("Daily version: %s", Daily.version());
 
 export default function App() {
   const callObject = useDaily();
+  const participantIds = useParticipantIds();
+  const activeId = useActiveSpeakerId();
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -135,76 +140,10 @@ export default function App() {
     console.log("Participant updated: ", evt);
   };
 
-  // mount the tracks from the track-started events
-  const startTrack = (evt: DailyEventObjectTrack) => {
-    console.log("Track started: ", evt);
-    if (evt.track.kind === "audio" && evt.participant?.local === false) {
-      let audiosDiv = document.getElementById("audios");
-      let audioEl = document.createElement("audio");
-
-      if (audiosDiv === null) {
-        throw new Error("audios div not found");
-      }
-
-      if (audioEl === null) {
-        throw new Error("audio element not found");
-      }
-
-      audiosDiv.appendChild(audioEl);
-      audioEl.style.width = "100%";
-      audioEl.srcObject = new MediaStream([evt.track]);
-      audioEl.play();
-      console.log("audioEl: ", audioEl);
-    } else if (evt.track.kind === "video") {
-      let videosDiv = document.getElementById("videos");
-      let videoEl = document.createElement("video");
-
-      if (videosDiv === null) {
-        throw new Error("videos div not found");
-      }
-
-      if (videoEl === null) {
-        throw new Error("video element not found");
-      }
-
-      videosDiv.appendChild(videoEl);
-      videoEl.style.width = "100%";
-      videoEl.srcObject = new MediaStream([evt.track]);
-      videoEl.play();
-      console.log("videoEl: ", videoEl);
-    }
-  };
-
-  // Listen to track-stopped events and remove the video / audio elements
-  function stopTrack(evt: DailyEventObjectTrack) {
-    console.log("Track stopped: ", evt);
-    if (evt.track.kind === "audio") {
-      let audios = document.getElementsByTagName("audio");
-      console.log("--- audios", audios);
-
-      for (let audio of audios) {
-        console.log(audio);
-        audio.remove();
-      }
-    } else if (evt.track.kind === "video") {
-      let vids = document.getElementsByTagName("video");
-      for (let vid of vids) {
-        const stream = vid.srcObject as MediaStream;
-        if (stream.getVideoTracks()[0] === evt.track) {
-          vid.remove();
-        }
-      }
-    }
-  }
-
   // Remove video elements and leave the room
   function leaveRoom() {
     if (!callObject) {
       return;
-    }
-    let vids = document.getElementsByTagName("video");
-    for (let vid of vids) {
-      vid.remove();
     }
     callObject.leave().catch((err) => {
       console.error("Error leaving room:", err);
@@ -239,10 +178,6 @@ export default function App() {
   }
 
   useDailyEvent("joined-meeting", meetingJoined);
-
-  useDailyEvent("track-started", startTrack);
-
-  useDailyEvent("track-stopped", stopTrack);
 
   useDailyEvent("participant-joined", participantJoined);
 
@@ -329,8 +264,11 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <br />
       </div>
-      <div id="videos"></div>
-      <div id="audios"></div>
+      {participantIds.map((id) => (
+        <DailyVideo type="video" key={id} automirror sessionId={id} />
+      ))}
+      <DailyAudio />
+
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
     </>
   );
