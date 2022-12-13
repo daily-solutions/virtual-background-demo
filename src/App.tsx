@@ -34,8 +34,7 @@ export default function App() {
     setSpeaker,
   } = useDevices();
 
-  const { startScreenShare, stopScreenShare, isSharingScreen } =
-    useScreenShare();
+  const { startScreenShare, stopScreenShare } = useScreenShare();
 
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
