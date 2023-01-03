@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Daily, {
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
@@ -14,8 +14,8 @@ import {
   useScreenShare,
   DailyVideo,
   useParticipantIds,
-  useActiveSpeakerId,
   DailyAudio,
+  useInputSettings,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -25,10 +25,13 @@ console.log("Daily version: %s", Daily.version());
 export default function App() {
   const callObject = useDaily();
   const participantIds = useParticipantIds();
-  const activeId = useActiveSpeakerId();
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
+
+  const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
+  const [enableBlurClicked, setEnableBlurClicked] = useState(false);
+  const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
 
   const {
     cameras,
@@ -38,6 +41,16 @@ export default function App() {
     speakers,
     setSpeaker,
   } = useDevices();
+
+  const { errorMsg, inputSettings, updateInputSettings } = useInputSettings({
+    onError(ev) {
+      console.log("Input settings error (daily-react)", ev);
+    },
+    onInputSettingsUpdated(ev) {
+      setInputSettingsUpdated(true);
+      console.log("Input settings updated (daily-react)", ev);
+    },
+  });
 
   const { startScreenShare, stopScreenShare } = useScreenShare();
 
@@ -50,50 +63,42 @@ export default function App() {
   });
 
   function enableBlur() {
-    if (!callObject) {
+    if (!callObject || enableBlurClicked) {
       return;
     }
 
-    callObject
-      .updateInputSettings({
-        video: {
-          processor: {
-            type: "background-blur",
-            config: { strength: 0.5 },
-          },
+    setEnableBlurClicked(true);
+    setEnableBackgroundClicked(false);
+
+    updateInputSettings({
+      video: {
+        processor: {
+          type: "background-blur",
+          config: { strength: 0.5 },
         },
-      })
-      .then((foo) => {
-        console.log("Background blur settings:", foo);
-      })
-      .catch((err) => {
-        console.error("Background blur error:", err);
-      });
+      },
+    });
   }
 
   function enableBackground() {
-    if (!callObject) {
+    if (!callObject || enableBackgroundClicked) {
       return;
     }
 
-    callObject
-      .updateInputSettings({
-        video: {
-          processor: {
-            type: "background-image",
-            config: {
-              source:
-                "https://docs.daily.co/assets/guides-large-meetings-hero.jpeg",
-            },
+    setEnableBackgroundClicked(true);
+    setEnableBlurClicked(false);
+
+    updateInputSettings({
+      video: {
+        processor: {
+          type: "background-image",
+          config: {
+            source:
+              "https://docs.daily.co/assets/guides-large-meetings-hero.jpeg",
           },
         },
-      })
-      .then((foo) => {
-        console.log("Background image settings:", foo);
-      })
-      .catch((err) => {
-        console.error("Background image error:", err);
-      });
+      },
+    });
   }
 
   // Join the room with the generated token
@@ -253,8 +258,15 @@ export default function App() {
         </select>
         <br />
         <br />
-        <button onClick={() => enableBlur()}>Enable Blur</button>
-        <button onClick={() => enableBackground()}>Enable Background</button>
+        <button disabled={enableBlurClicked} onClick={() => enableBlur()}>
+          Enable Blur
+        </button>
+        <button
+          disabled={enableBackgroundClicked}
+          onClick={() => enableBackground()}
+        >
+          Enable Background
+        </button>
         <button onClick={() => startScreenShare()}>Start Screen Share</button>
         <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
         <button onClick={() => leaveRoom()}>Leave call</button>
@@ -270,6 +282,8 @@ export default function App() {
       <DailyAudio />
 
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
+      {inputSettingsUpdated && <div>Input settings updated</div>}
+      {errorMsg && <div id="errorMsg">{errorMsg}</div>}
     </>
   );
 }
