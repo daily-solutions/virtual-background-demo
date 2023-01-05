@@ -18,6 +18,8 @@ import {
   useInputSettings,
 } from "@daily-co/daily-react";
 
+import { v4 as uuidv4 } from "uuid";
+
 import "./styles.css";
 
 console.log("Daily version: %s", Daily.version());
@@ -182,6 +184,39 @@ export default function App() {
     });
   }
 
+  const record = () => {
+    if (!callObject) {
+      return;
+    }
+    callObject.startRecording({ instanceId: uuidv4() });
+
+    const headersList: HeadersInit = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: "Bearer " + process.env.REACT_APP_DAILY_API_KEY,
+    };
+
+    console.log(headersList);
+
+    const bodyContent: BodyInit = JSON.stringify({
+      layout: { preset: "active-participant" },
+      force_cloud_recording: true,
+      instanceId: uuidv4(),
+    });
+
+    fetch(`https://api.daily.co/v1/rooms/raw-tracks/recordings/start`, {
+      method: "POST",
+      body: bodyContent,
+      headers: headersList,
+    })
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        console.log(data);
+      });
+  };
+
   useDailyEvent("joined-meeting", meetingJoined);
 
   useDailyEvent("participant-joined", participantJoined);
@@ -275,6 +310,13 @@ export default function App() {
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <br />
+        <button
+          onClick={() => {
+            record();
+          }}
+        >
+          Record
+        </button>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
