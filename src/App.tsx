@@ -16,6 +16,7 @@ import {
   useParticipantIds,
   DailyAudio,
   useInputSettings,
+  useNetwork,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -32,6 +33,8 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
+
+  const network = useNetwork();
 
   const {
     cameras,
@@ -223,6 +226,10 @@ export default function App() {
 
   useDailyEvent("participant-updated", updateParticipant);
 
+  useDailyEvent("track-started", logEvent);
+
+  useDailyEvent("track-stopped", logEvent);
+
   useDailyEvent("started-camera", startedCamera);
 
   useDailyEvent("input-settings-updated", logEvent);
@@ -351,6 +358,7 @@ export default function App() {
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
+      <div>Network quality: {network.quality}</div>
     </>
   );
 }
