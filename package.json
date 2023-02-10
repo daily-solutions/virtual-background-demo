@@ -7,7 +7,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.36.1",
+    "@daily-co/daily-js": "^0.38.0",
     "@daily-co/daily-react": "^0.6.2",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

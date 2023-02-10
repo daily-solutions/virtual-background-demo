@@ -254,6 +254,10 @@ export default function App() {
     console.log("camera-error", evt);
   });
 
+  useDailyEvent("error", (evt) => {
+    console.log("error event", evt);
+  });
+
   // Error logging for background effects
   useDailyEvent(
     "input-settings-updated",
