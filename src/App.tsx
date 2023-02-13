@@ -55,7 +55,7 @@ export default function App() {
     },
   });
 
-  const { startScreenShare, stopScreenShare } = useScreenShare();
+  const { startScreenShare, stopScreenShare, screens } = useScreenShare();
 
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
@@ -355,6 +355,14 @@ export default function App() {
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
+      ))}
+      {screens.map((screen) => (
+        <DailyVideo
+          type="screenVideo"
+          key={screen.screenId}
+          automirror
+          sessionId={screen.session_id}
+        />
       ))}
       <DailyAudio />
 
