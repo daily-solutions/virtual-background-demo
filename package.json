@@ -7,8 +7,8 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.38.0",
-    "@daily-co/daily-react": "^0.6.2",
+    "@daily-co/daily-js": "^0.40.0",
+    "@daily-co/daily-react": "^0.7.2",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -19,8 +19,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "recoil": "^0.7.6",
-    "typescript": "^4.9.4"
+    "recoil": "^0.7.7",
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
