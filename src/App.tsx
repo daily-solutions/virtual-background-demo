@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Daily, {
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
@@ -25,7 +25,11 @@ console.log("Daily version: %s", Daily.version());
 
 export default function App() {
   const callObject = useDaily();
+  //@ts-expect-error
+  window.callObject = callObject;
+
   const participantIds = useParticipantIds();
+  const [counter, setCounter] = useState(0);
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -64,6 +68,19 @@ export default function App() {
   useDailyEvent("camera-error", (evt: DailyEventObjectCameraError) => {
     console.log(evt);
   });
+
+  const timer = useRef(undefined); // we can save timer in useRef and pass it to child
+
+  useEffect(() => {
+    // useRef value stored in .current property
+    // @ts-expect-error
+    timer.current = setInterval(() => setCounter((v) => v + 1), 1 * 1000);
+
+    // clear on component unmount
+    return () => {
+      clearInterval(timer.current);
+    };
+  }, []);
 
   function enableBlur() {
     if (!callObject || enableBlurClicked) {
@@ -278,6 +295,11 @@ export default function App() {
   return (
     <>
       <div className="App">
+        <Child
+          counter={counter}
+          currentTimer={timer.current}
+          participantId={participantIds[0]}
+        />
         <br />
         1. Join the call
         <br />
@@ -356,14 +378,17 @@ export default function App() {
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
-      {screens.map((screen) => (
-        <DailyVideo
-          type="screenVideo"
-          key={screen.screenId}
-          automirror
-          sessionId={screen.session_id}
-        />
-      ))}
+      {/* {screens.map((screen) => (
+        <>
+          <br />
+          <DailyVideo
+            type="screen"
+            key={screen.screenId}
+            automirror
+            sessionId={screen.session_id}
+          />
+        </>
+      ))} */}
       <DailyAudio />
 
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
@@ -372,5 +397,59 @@ export default function App() {
       <div id="participantCount">Participant Counts: {participantCounts}</div>
       <div>Network quality: {network.quality}</div>
     </>
+  );
+}
+
+interface ChildProps {
+  counter: number;
+  currentTimer?: number;
+  participantId: string;
+}
+function Child({ counter, currentTimer, participantId }: ChildProps) {
+  function getParticipantAudioLevel(id: string) {
+    console.log("getParticipantAudioLevel id", id);
+    try {
+      if (!window.rtcpeers) return;
+
+      const isSFU = window.rtcpeers.getCurrentType() === "sfu";
+
+      let consumer = isSFU
+        ? window.rtcpeers.sfu.consumers[id + "/cam-audio"]
+        : window.rtcpeers.peerToPeer.rtcPeerConnections[id];
+
+      // local audio
+      if (id === "local") {
+        consumer = window.rtcpeers.sfu.producers.find(
+          (p) => p._kind === "audio"
+        );
+      }
+
+      const receiver = isSFU
+        ? consumer._rtpReceiver
+        : consumer
+            .getReceivers()
+            .find((r: { track: { kind: string } }) => r.track.kind === "audio");
+
+      if (!receiver || !receiver.getSynchronizationSources) return;
+
+      return receiver.getSynchronizationSources()[0]?.audioLevel;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const audioLevel = getParticipantAudioLevel(participantId);
+
+  // this will clearInterval in parent component after counter gets to 5
+  useEffect(() => {
+    if (counter < 1000) return;
+
+    clearInterval(currentTimer);
+  }, [counter, currentTimer]);
+
+  return (
+    <h1>
+      {counter} {audioLevel}
+    </h1>
   );
 }

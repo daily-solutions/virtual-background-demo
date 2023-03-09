@@ -13,16 +13,14 @@ const dailyConfig: DailyCallOptions["dailyConfig"] = {
 };
 
 const callObject = Daily.createCallObject({
-  subscribeToTracksAutomatically: false,
+  subscribeToTracksAutomatically: true,
   dailyConfig,
 });
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
 root.render(
-  <StrictMode>
-    <DailyProvider callObject={callObject}>
-      <App />
-    </DailyProvider>
-  </StrictMode>
+  <DailyProvider callObject={callObject}>
+    <App />
+  </DailyProvider>
 );
