@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import Daily, {
+  DailyEventObject,
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
   DailyEventObjectNonFatalError,
@@ -17,6 +18,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useLocalParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -26,6 +28,10 @@ console.log("Daily version: %s", Daily.version());
 export default function App() {
   const callObject = useDaily();
   const participantIds = useParticipantIds();
+  console.log("participantIds: ", participantIds);
+
+  const localParticipant = useLocalParticipant();
+  console.log("localParticipant: ", localParticipant);
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -33,6 +39,9 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
+  const [meetingState, setMeetingState] = useState<
+    "pre-auth" | "joined" | "left-meeting"
+  >();
 
   const network = useNetwork();
 
@@ -150,7 +159,12 @@ export default function App() {
   };
 
   const participantJoined = (evt: DailyEventObjectParticipant) => {
+    if (!callObject) return;
+
     console.log("Participant joined meeting: ", evt);
+    callObject.updateParticipant(evt.participant.session_id, {
+      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    });
   };
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
@@ -214,8 +228,8 @@ export default function App() {
     });
   }
 
-  function logEvent(evt: any) {
-    console.log("logEvent: ", evt);
+  function logEvent(evt: DailyEventObject) {
+    console.log("logEvent: " + evt.action, evt);
   }
 
   useDailyEvent("joining-meeting", logEvent);
@@ -242,13 +256,18 @@ export default function App() {
 
   useDailyEvent("receive-settings-updated", logEvent);
 
-  useDailyEvent("left-meeting", logEvent);
+  useDailyEvent(
+    "left-meeting",
+    useCallback((ev) => {
+      setMeetingState("left-meeting");
+    }, [])
+  );
 
   useDailyEvent("participant-left", logEvent);
 
-  useDailyEvent("network-connection", logEvent);
+  // useDailyEvent("network-connection", logEvent);
 
-  useDailyEvent("network-quality-change", logEvent);
+  // useDailyEvent("network-quality-change", logEvent);
 
   useDailyEvent("camera-error", (evt) => {
     console.log("camera-error", evt);
@@ -274,6 +293,8 @@ export default function App() {
   const presentParticipantCount = callObject?.participantCounts().present ?? 0;
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
+
+  if (meetingState === "left-meeting") return <div>Left meeting</div>;
 
   return (
     <>
@@ -366,7 +387,9 @@ export default function App() {
       ))}
       <DailyAudio />
 
-      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
+      <div id="meetingState">
+        Meeting State: {callObject?.meetingState()} {meetingState}
+      </div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
