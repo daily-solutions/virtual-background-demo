@@ -18,7 +18,6 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
-  useLocalParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -28,10 +27,6 @@ console.log("Daily version: %s", Daily.version());
 export default function App() {
   const callObject = useDaily();
   const participantIds = useParticipantIds();
-  console.log("participantIds: ", participantIds);
-
-  const localParticipant = useLocalParticipant();
-  console.log("localParticipant: ", localParticipant);
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -212,20 +207,14 @@ export default function App() {
     if (!callObject) {
       return;
     }
-    callObject.updateParticipant("local", {
-      setAudio: false,
-      setVideo: false,
-    });
+    callObject.setLocalVideo(false);
   }
 
   function updateCameraOn() {
     if (!callObject) {
       return;
     }
-    callObject.updateParticipant("local", {
-      setAudio: true,
-      setVideo: true,
-    });
+    callObject.setLocalVideo(true);
   }
 
   function logEvent(evt: DailyEventObject) {
@@ -369,9 +358,8 @@ export default function App() {
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
-        <button onClick={() => stopCamera()}>Publish Camera Off</button> <br />
-        <button onClick={() => updateCameraOn()}>Publish Camera On</button>{" "}
-        <br />
+        <button onClick={() => stopCamera()}>Camera Off</button> <br />
+        <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
       </div>
       {participantIds.map((id) => (
