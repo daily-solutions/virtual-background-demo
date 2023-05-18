@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
@@ -37,6 +37,36 @@ export default function App() {
   const [meetingState, setMeetingState] = useState<
     "pre-auth" | "joined" | "left-meeting"
   >();
+
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const presentationCanvasRef = useRef();
+
+  const fps = 5;
+
+  // (ctx, e) => (cb, receive) => {
+  //   let slide = e.slide
+  //   const context = presentationCanvasRef.current?.getContext('2d')
+
+  //   const id = setIntervalWithId(() => {
+  //     if (!isUndefined(context) && context !== null) renderSlideOnCanvas(slide ?? '', context)
+  //   }, 1000 / fps, 'render-slide-canvas-interval')
+
+  //   const stream = presentationCanvasRef.current?.captureStream(fps)
+
+  //   callObject.startScreenShare({
+  //     mediaStream: stream,
+  //   })
+
+  //   // Sets the local variable for the current slide
+  //   receive((event: WebinarMachineEvents<'CHANGE_SLIDE'>) => {
+  //     slide = event.slide
+  //   })
+
+  //   return () => {
+  //     callObject.stopScreenShare()
+  //     clearIntervalWithId(id, 'render-slide-canvas-interval')
+  //   }
+  // }
 
   const network = useNetwork();
 
@@ -295,6 +325,29 @@ export default function App() {
         <br />
         <button onClick={() => joinRoom()}>Join call</button>
         <br />
+        <hr />
+        <div id="presentationCanvas">
+          {currentSlide === 0 ? (
+            <img
+              alt="What Up"
+              src="https://placehold.co/600x400/blue/white?text=What+up"
+            />
+          ) : (
+            <img
+              alt="Nothing Much"
+              src="https://placehold.co/600x400/white/blue?text=Nothing+much"
+            />
+          )}
+          <br />
+          <button
+            onClick={() => {
+              const nextSlide = currentSlide < 1 ? currentSlide + 1 : 0;
+              setCurrentSlide(nextSlide);
+            }}
+          >
+            Next Slide
+          </button>
+        </div>
         <hr />
         <br />
         2. Select your device <br />
