@@ -12,7 +12,7 @@ const dailyConfig: DailyCallOptions["dailyConfig"] = {
 };
 
 const callObject = Daily.createCallObject({
-  subscribeToTracksAutomatically: false,
+  subscribeToTracksAutomatically: true,
   dailyConfig,
 });
 
