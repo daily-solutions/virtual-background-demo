@@ -292,44 +292,20 @@ export default function App() {
   if (ctx) {
     if (currentSlide === 0) {
       const image = new Image(1320, 743);
-      image.src = "/1_big.png";
+      image.src = "/1_big.jpg";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
       };
     } else {
       const image = new Image(1320, 743);
-      image.src = "/2_big.png";
+      image.src = "/2_big.jpg";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
       };
     }
   }
-  // (ctx, e) => (cb, receive) => {
-  //   let slide = e.slide
-  //   const context = presentationCanvasRef.current?.getContext('2d')
-
-  //   const id = setIntervalWithId(() => {
-  //     if (!isUndefined(context) && context !== null) renderSlideOnCanvas(slide ?? '', context)
-  //   }, 1000 / fps, 'render-slide-canvas-interval')
-
-  //   const stream = presentationCanvasRef.current?.captureStream(fps)
-
-  //   callObject.startScreenShare({
-  //     mediaStream: stream,
-  //   })
-
-  //   // Sets the local variable for the current slide
-  //   receive((event: WebinarMachineEvents<'CHANGE_SLIDE'>) => {
-  //     slide = event.slide
-  //   })
-
-  //   return () => {
-  //     callObject.stopScreenShare()
-  //     clearIntervalWithId(id, 'render-slide-canvas-interval')
-  //   }
-  // }
 
   return (
     <>
