@@ -160,9 +160,9 @@ export default function App() {
     if (!callObject) return;
 
     console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: true },
-    });
+    // callObject.updateParticipant(evt.participant.session_id, {
+    //   setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    // });
   };
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
@@ -291,15 +291,15 @@ export default function App() {
   const ctx = presentationCanvasRef.current?.getContext("2d");
   if (ctx) {
     if (currentSlide === 0) {
-      const image = new Image(600, 400);
-      image.src = "/whatup.svg";
+      const image = new Image(1320, 743);
+      image.src = "/1_big.png";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
       };
     } else {
-      const image = new Image(600, 400);
-      image.src = "/nothingmuch.svg";
+      const image = new Image(1320, 743);
+      image.src = "/2_big.png";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
@@ -345,8 +345,8 @@ export default function App() {
         {presentationCanvasRef ? (
           <canvas
             id="presentationCanvas"
-            width="300"
-            height="200"
+            width="1320"
+            height="743"
             ref={presentationCanvasRef}
           ></canvas>
         ) : null}
