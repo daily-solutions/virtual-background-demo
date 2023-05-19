@@ -392,7 +392,6 @@ export default function App() {
         <button
           onClick={() => {
             const stream = presentationCanvasRef.current?.captureStream(5);
-            console.log("stream: ", stream);
             startScreenShare({
               mediaStream: stream,
             });
