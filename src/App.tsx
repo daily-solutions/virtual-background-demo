@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
@@ -18,6 +18,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useRecording,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -38,7 +39,11 @@ export default function App() {
     "pre-auth" | "joined" | "left-meeting"
   >();
 
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
+
   const network = useNetwork();
+  const recording = useRecording();
 
   const {
     cameras,
@@ -114,8 +119,6 @@ export default function App() {
       return;
     }
 
-    console.log(room);
-
     callObject
       .join({
         // Replace with your own room url
@@ -157,9 +160,9 @@ export default function App() {
     if (!callObject) return;
 
     console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
+    // callObject.updateParticipant(evt.participant.session_id, {
+    //   setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    // });
   };
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
@@ -285,6 +288,25 @@ export default function App() {
 
   if (meetingState === "left-meeting") return <div>Left meeting</div>;
 
+  const ctx = presentationCanvasRef.current?.getContext("2d");
+  if (ctx) {
+    if (currentSlide === 0) {
+      const image = new Image(1280, 720);
+      image.src = "/one.jpg";
+      image.crossOrigin = "anonymous";
+      image.onload = () => {
+        ctx.drawImage(image, 0, 0);
+      };
+    } else {
+      const image = new Image(1280, 720);
+      image.src = "/two.jpg";
+      image.crossOrigin = "anonymous";
+      image.onload = () => {
+        ctx.drawImage(image, 0, 0);
+      };
+    }
+  }
+
   return (
     <>
       <div className="App">
@@ -295,6 +317,23 @@ export default function App() {
         <br />
         <button onClick={() => joinRoom()}>Join call</button>
         <br />
+        <hr />
+        {presentationCanvasRef ? (
+          <canvas
+            id="presentationCanvas"
+            width="1280"
+            height="720"
+            ref={presentationCanvasRef}
+          ></canvas>
+        ) : null}
+        <button
+          onClick={() => {
+            const nextSlide = currentSlide < 1 ? currentSlide + 1 : 0;
+            setCurrentSlide(nextSlide);
+          }}
+        >
+          Next Slide
+        </button>
         <hr />
         <br />
         2. Select your device <br />
@@ -350,7 +389,23 @@ export default function App() {
         >
           Enable Background
         </button>
-        <button onClick={() => startScreenShare()}>Start Screen Share</button>
+        <button
+          onClick={() => {
+            const stream = presentationCanvasRef.current?.captureStream(5);
+            startScreenShare({
+              mediaStream: stream,
+            });
+          }}
+        >
+          Start Canvas Screen Share
+        </button>
+        <button
+          onClick={() => {
+            recording.startRecording();
+          }}
+        >
+          Record
+        </button>
         <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
@@ -365,14 +420,17 @@ export default function App() {
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
-      {screens.map((screen) => (
-        <DailyVideo
-          type="screenVideo"
-          key={screen.screenId}
-          automirror
-          sessionId={screen.session_id}
-        />
-      ))}
+      {screens.map((screen) => {
+        console.log("screen: ", screen);
+        return (
+          <DailyVideo
+            type="screenVideo"
+            key={screen.screenId}
+            automirror
+            sessionId={screen.session_id}
+          />
+        );
+      })}
       <DailyAudio />
 
       <div id="meetingState">

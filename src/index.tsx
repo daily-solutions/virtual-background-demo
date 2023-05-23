@@ -8,12 +8,11 @@ import App from "./App";
 
 // Account & room settings
 const dailyConfig: DailyCallOptions["dailyConfig"] = {
-  experimentalChromeVideoMuteLightOff: true,
   useDevicePreferenceCookies: true,
 };
 
 const callObject = Daily.createCallObject({
-  subscribeToTracksAutomatically: false,
+  subscribeToTracksAutomatically: true,
   dailyConfig,
 });
 
