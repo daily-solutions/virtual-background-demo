@@ -291,15 +291,15 @@ export default function App() {
   const ctx = presentationCanvasRef.current?.getContext("2d");
   if (ctx) {
     if (currentSlide === 0) {
-      const image = new Image(1320, 743);
-      image.src = "/1_big.jpg";
+      const image = new Image(1280, 720);
+      image.src = "/one.jpg";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
       };
     } else {
-      const image = new Image(1320, 743);
-      image.src = "/2_big.jpg";
+      const image = new Image(1280, 720);
+      image.src = "/two.jpg";
       image.crossOrigin = "anonymous";
       image.onload = () => {
         ctx.drawImage(image, 0, 0);
@@ -321,8 +321,8 @@ export default function App() {
         {presentationCanvasRef ? (
           <canvas
             id="presentationCanvas"
-            width="1320"
-            height="743"
+            width="1280"
+            height="720"
             ref={presentationCanvasRef}
           ></canvas>
         ) : null}
