@@ -248,6 +248,7 @@ export default function App() {
   useDailyEvent(
     "left-meeting",
     useCallback((ev) => {
+      logEvent(ev);
       setMeetingState("left-meeting");
     }, [])
   );
