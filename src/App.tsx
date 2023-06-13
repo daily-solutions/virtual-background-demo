@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
@@ -245,10 +245,17 @@ export default function App() {
 
   useDailyEvent("receive-settings-updated", logEvent);
 
+  useEffect(() => {
+    return () => {
+      leaveRoom();
+    };
+  }, [leaveRoom]);
+
   useDailyEvent(
     "left-meeting",
     useCallback((ev) => {
       logEvent(ev);
+      console.log(ev, "event (this should log)");
       setMeetingState("left-meeting");
     }, [])
   );
