@@ -167,14 +167,24 @@ export default function App() {
   };
 
   // Remove video elements and leave the room
-  function leaveRoom() {
+  // Remove video elements and leave the room
+  const leaveRoom = useCallback(() => {
+    console.log("--- called inside leaveRoom", callObject);
     if (!callObject) {
       return;
     }
     callObject.leave().catch((err) => {
       console.error("Error leaving room:", err);
     });
-  }
+  }, [callObject]);
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", leaveRoom);
+
+    return () => {
+      window.removeEventListener("beforeunload", leaveRoom);
+    };
+  }, [leaveRoom]);
 
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
@@ -244,12 +254,6 @@ export default function App() {
   useDailyEvent("load-attempt-failed", logEvent);
 
   useDailyEvent("receive-settings-updated", logEvent);
-
-  useEffect(() => {
-    return () => {
-      leaveRoom();
-    };
-  }, [leaveRoom]);
 
   useDailyEvent(
     "left-meeting",
