@@ -18,6 +18,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useLiveStreaming,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -48,6 +49,31 @@ export default function App() {
     speakers,
     setSpeaker,
   } = useDevices();
+
+  const onLiveStreamingError = useCallback((e: any) => {
+    console.log("--- onLiveStreamingError", e);
+  }, []);
+
+  const onLiveStreamingStarted = useCallback((e: any) => {
+    console.log("--- onLiveStreamingStarted", e);
+  }, []);
+
+  const onLiveStreamingStopped = useCallback((e: any) => {
+    console.log("--- onLiveStreamingStopped", e);
+  }, []);
+
+  const {
+    errorMsg: liveStreamErrorMsg,
+    isLiveStreaming,
+    startLiveStreaming,
+    stopLiveStreaming,
+  } = useLiveStreaming({
+    onLiveStreamingError,
+    onLiveStreamingStarted,
+    onLiveStreamingStopped,
+  });
+
+  console.log("--- liveStreamErrorMsg: ", liveStreamErrorMsg);
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -120,6 +146,7 @@ export default function App() {
       .join({
         // Replace with your own room url
         url: `https://${room}`,
+        token: process.env.REACT_APP_ROOM_TOKEN,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -373,7 +400,25 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+        <button
+          onClick={() => {
+            startLiveStreaming({
+              rtmpUrl: process.env.REACT_APP_RTMP_URL,
+            });
+          }}
+        >
+          Start Live Streaming
+        </button>
+        <button
+          onClick={() => {
+            stopLiveStreaming();
+          }}
+        >
+          Stop Live Streaming
+        </button>
       </div>
+      <div>Is live streaming: {String(isLiveStreaming)}</div>
+
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
