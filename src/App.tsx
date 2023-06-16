@@ -6,6 +6,7 @@ import Daily, {
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
+  DailyParticipant,
 } from "@daily-co/daily-js";
 
 import {
@@ -27,7 +28,38 @@ console.log("Daily version: %s", Daily.version());
 
 export default function App() {
   const callObject = useDaily();
-  const participantIds = useParticipantIds();
+
+  const logEvent = useCallback((evt: DailyEventObject) => {
+    console.log("logEvent: " + evt.action, evt);
+  }, []);
+
+  const participantJoined = useCallback(
+    (evt: DailyEventObjectParticipant) => {
+      if (!callObject) return;
+
+      logEvent(evt);
+      callObject.updateParticipant(evt.participant.session_id, {
+        setSubscribedTracks: {
+          audio: "staged",
+          video: "staged",
+          screenVideo: false,
+        },
+      });
+    },
+    [callObject, logEvent]
+  );
+
+  const participantFilter = useCallback((p: DailyParticipant) => {
+    console.log("--- subscribed state:", p.tracks.video.subscribed);
+    return true;
+  }, []);
+
+  const participantIds = useParticipantIds({
+    onParticipantJoined: participantJoined,
+    onParticipantLeft: logEvent,
+    onParticipantUpdated: logEvent,
+    filter: participantFilter,
+  });
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -180,19 +212,6 @@ export default function App() {
     console.log("You joined the meeting: ", evt);
   };
 
-  const participantJoined = (evt: DailyEventObjectParticipant) => {
-    if (!callObject) return;
-
-    console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
-  };
-
-  const updateParticipant = (evt: DailyEventObjectParticipant) => {
-    console.log("Participant updated: ", evt);
-  };
-
   // Remove video elements and leave the room
   // Remove video elements and leave the room
   const leaveRoom = useCallback(() => {
@@ -254,17 +273,9 @@ export default function App() {
     callObject.setLocalVideo(true);
   }
 
-  function logEvent(evt: DailyEventObject) {
-    console.log("logEvent: " + evt.action, evt);
-  }
-
   useDailyEvent("joining-meeting", logEvent);
 
   useDailyEvent("joined-meeting", meetingJoined);
-
-  useDailyEvent("participant-joined", participantJoined);
-
-  useDailyEvent("participant-updated", updateParticipant);
 
   useDailyEvent("track-started", logEvent);
 
@@ -284,14 +295,14 @@ export default function App() {
 
   useDailyEvent(
     "left-meeting",
-    useCallback((ev) => {
-      logEvent(ev);
-      console.log(ev, "event (this should log)");
-      setMeetingState("left-meeting");
-    }, [])
+    useCallback(
+      (ev) => {
+        logEvent(ev);
+        setMeetingState("left-meeting");
+      },
+      [logEvent]
+    )
   );
-
-  useDailyEvent("participant-left", logEvent);
 
   // useDailyEvent("network-connection", logEvent);
 
