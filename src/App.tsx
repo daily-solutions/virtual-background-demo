@@ -6,7 +6,6 @@ import Daily, {
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
-  DailyParticipant,
 } from "@daily-co/daily-js";
 
 import {
@@ -33,15 +32,26 @@ export default function App() {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
-  const participantJoined = useCallback(
+  const {
+    errorMsg: liveStreamErrorMsg,
+    isLiveStreaming,
+    startLiveStreaming,
+    stopLiveStreaming,
+  } = useLiveStreaming({
+    onLiveStreamingError: logEvent,
+    onLiveStreamingStarted: logEvent,
+    onLiveStreamingStopped: logEvent,
+  });
+
+  const onParticipantJoined = useCallback(
     (evt: DailyEventObjectParticipant) => {
       if (!callObject) return;
 
       logEvent(evt);
       callObject.updateParticipant(evt.participant.session_id, {
         setSubscribedTracks: {
-          audio: "staged",
-          video: "staged",
+          audio: true,
+          video: true,
           screenVideo: false,
         },
       });
@@ -49,16 +59,15 @@ export default function App() {
     [callObject, logEvent]
   );
 
-  const participantFilter = useCallback((p: DailyParticipant) => {
-    console.log("--- subscribed state:", p.tracks.video.subscribed);
-    return true;
-  }, []);
+  const onParticipantLeft = useCallback(() => {
+    setMeetingState("left-meeting");
+    stopLiveStreaming();
+  }, [stopLiveStreaming]);
 
   const participantIds = useParticipantIds({
-    onParticipantJoined: participantJoined,
-    onParticipantLeft: logEvent,
+    onParticipantJoined,
+    onParticipantLeft,
     onParticipantUpdated: logEvent,
-    filter: participantFilter,
   });
 
   const queryParams = new URLSearchParams(window.location.search);
@@ -82,30 +91,9 @@ export default function App() {
     setSpeaker,
   } = useDevices();
 
-  const onLiveStreamingError = useCallback((e: any) => {
-    console.log("--- onLiveStreamingError", e);
-  }, []);
-
-  const onLiveStreamingStarted = useCallback((e: any) => {
-    console.log("--- onLiveStreamingStarted", e);
-  }, []);
-
-  const onLiveStreamingStopped = useCallback((e: any) => {
-    console.log("--- onLiveStreamingStopped", e);
-  }, []);
-
-  const {
-    errorMsg: liveStreamErrorMsg,
-    isLiveStreaming,
-    startLiveStreaming,
-    stopLiveStreaming,
-  } = useLiveStreaming({
-    onLiveStreamingError,
-    onLiveStreamingStarted,
-    onLiveStreamingStopped,
-  });
-
-  console.log("--- liveStreamErrorMsg: ", liveStreamErrorMsg);
+  if (liveStreamErrorMsg) {
+    console.log("--- liveStreamErrorMsg: ", liveStreamErrorMsg);
+  }
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -224,13 +212,13 @@ export default function App() {
     });
   }, [callObject]);
 
-  useEffect(() => {
-    window.addEventListener("beforeunload", leaveRoom);
+  // useEffect(() => {
+  //   window.addEventListener("beforeunload", leaveRoom);
 
-    return () => {
-      window.removeEventListener("beforeunload", leaveRoom);
-    };
-  }, [leaveRoom]);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", leaveRoom);
+  //   };
+  // }, [leaveRoom]);
 
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
@@ -292,17 +280,6 @@ export default function App() {
   useDailyEvent("load-attempt-failed", logEvent);
 
   useDailyEvent("receive-settings-updated", logEvent);
-
-  useDailyEvent(
-    "left-meeting",
-    useCallback(
-      (ev) => {
-        logEvent(ev);
-        setMeetingState("left-meeting");
-      },
-      [logEvent]
-    )
-  );
 
   // useDailyEvent("network-connection", logEvent);
 
