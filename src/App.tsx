@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Daily, {
+  DailyCallOptions,
   DailyEventObject,
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
@@ -19,6 +20,8 @@ import {
   useInputSettings,
   useNetwork,
   useLiveStreaming,
+  useParticipantProperty,
+  useLocalSessionId,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -27,6 +30,8 @@ console.log("Daily version: %s", Daily.version());
 
 export default function App() {
   const callObject = useDaily();
+  const localSessionId = useLocalSessionId();
+  const [isLocalOwner] = useParticipantProperty(localSessionId, ["owner"]);
 
   const logEvent = useCallback((evt: DailyEventObject) => {
     console.log("logEvent: " + evt.action, evt);
@@ -59,14 +64,9 @@ export default function App() {
     [callObject, logEvent]
   );
 
-  const onParticipantLeft = useCallback(() => {
-    setMeetingState("left-meeting");
-    stopLiveStreaming();
-  }, [stopLiveStreaming]);
-
   const participantIds = useParticipantIds({
     onParticipantJoined,
-    onParticipantLeft,
+    onParticipantLeft: logEvent,
     onParticipantUpdated: logEvent,
   });
 
@@ -155,22 +155,26 @@ export default function App() {
   }
 
   // Join the room with the generated token
-  const joinRoom = () => {
+  const joinRoom = (isOwner: boolean) => {
     if (!callObject) {
       return;
     }
 
-    console.log(room);
+    // Replace with your own room url
+    const url = `https://${room}`;
 
-    callObject
-      .join({
-        // Replace with your own room url
-        url: `https://${room}`,
-        token: process.env.REACT_APP_ROOM_TOKEN,
-      })
-      .catch((err) => {
-        console.error("Error joining room:", err);
-      });
+    const callOptions: DailyCallOptions = isOwner
+      ? {
+          url,
+          token: process.env.REACT_APP_ROOM_TOKEN,
+        }
+      : {
+          url,
+        };
+
+    callObject.join(callOptions).catch((err) => {
+      console.error("Error joining room:", err);
+    });
     console.log("joined!");
   };
 
@@ -196,29 +200,45 @@ export default function App() {
     console.log("started camera");
   };
 
-  const meetingJoined = (evt: DailyEventObjectParticipants) => {
-    console.log("You joined the meeting: ", evt);
-  };
+  const meetingJoined = useCallback(
+    (evt: DailyEventObjectParticipants) => {
+      console.log("You joined the meeting: ", evt);
+      if (isLocalOwner) {
+        startLiveStreaming({
+          rtmpUrl: process.env.REACT_APP_RTMP_URL,
+        });
+      }
+    },
+    [isLocalOwner, startLiveStreaming]
+  );
 
-  // Remove video elements and leave the room
+  const meetingLeft = useCallback(() => {
+    setMeetingState("left-meeting");
+  }, []);
+
   // Remove video elements and leave the room
   const leaveRoom = useCallback(() => {
     console.log("--- called inside leaveRoom", callObject);
     if (!callObject) {
       return;
     }
+
+    if (isLocalOwner) {
+      stopLiveStreaming();
+    }
+
     callObject.leave().catch((err) => {
       console.error("Error leaving room:", err);
     });
-  }, [callObject]);
+  }, [callObject, isLocalOwner, stopLiveStreaming]);
 
-  // useEffect(() => {
-  //   window.addEventListener("beforeunload", leaveRoom);
+  useEffect(() => {
+    window.addEventListener("beforeunload", leaveRoom);
 
-  //   return () => {
-  //     window.removeEventListener("beforeunload", leaveRoom);
-  //   };
-  // }, [leaveRoom]);
+    return () => {
+      window.removeEventListener("beforeunload", leaveRoom);
+    };
+  }, [leaveRoom]);
 
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
@@ -265,6 +285,8 @@ export default function App() {
 
   useDailyEvent("joined-meeting", meetingJoined);
 
+  useDailyEvent("left-meeting", meetingLeft);
+
   useDailyEvent("track-started", logEvent);
 
   useDailyEvent("track-stopped", logEvent);
@@ -310,7 +332,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  if (meetingState === "left-meeting") return <div>Left meeting</div>;
+  // if (meetingState === "left-meeting") return <div>Left meeting</div>;
 
   return (
     <>
@@ -319,8 +341,10 @@ export default function App() {
         1. Join the call
         <br />
         {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
+        {isLocalOwner ? `isLocalOwner: true` : false}
         <br />
-        <button onClick={() => joinRoom()}>Join call</button>
+        <button onClick={() => joinRoom(true)}>Join call: Owner</button>
+        <button onClick={() => joinRoom(false)}>Join call: Non-owner</button>
         <br />
         <hr />
         <br />
