@@ -16,6 +16,9 @@ const callObject = Daily.createCallObject({
   dailyConfig,
 });
 
+// @ts-expect-error
+window.callObject = callObject;
+
 const container = document.getElementById("root");
 const root = createRoot(container!);
 root.render(

@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Daily, {
+  DailyCallOptions,
   DailyEventObject,
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
@@ -18,6 +19,9 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useLiveStreaming,
+  useParticipantProperty,
+  useLocalSessionId,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -26,7 +30,45 @@ console.log("Daily version: %s", Daily.version());
 
 export default function App() {
   const callObject = useDaily();
-  const participantIds = useParticipantIds();
+  const localSessionId = useLocalSessionId();
+  const [isLocalOwner] = useParticipantProperty(localSessionId, ["owner"]);
+
+  const logEvent = useCallback((evt: DailyEventObject) => {
+    console.log("logEvent: " + evt.action, evt);
+  }, []);
+
+  const {
+    errorMsg: liveStreamErrorMsg,
+    isLiveStreaming,
+    startLiveStreaming,
+    stopLiveStreaming,
+  } = useLiveStreaming({
+    onLiveStreamingError: logEvent,
+    onLiveStreamingStarted: logEvent,
+    onLiveStreamingStopped: logEvent,
+  });
+
+  const onParticipantJoined = useCallback(
+    (evt: DailyEventObjectParticipant) => {
+      if (!callObject) return;
+
+      logEvent(evt);
+      callObject.updateParticipant(evt.participant.session_id, {
+        setSubscribedTracks: {
+          audio: true,
+          video: true,
+          screenVideo: false,
+        },
+      });
+    },
+    [callObject, logEvent]
+  );
+
+  const participantIds = useParticipantIds({
+    onParticipantJoined,
+    onParticipantLeft: logEvent,
+    onParticipantUpdated: logEvent,
+  });
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -48,6 +90,10 @@ export default function App() {
     speakers,
     setSpeaker,
   } = useDevices();
+
+  if (liveStreamErrorMsg) {
+    console.log("--- liveStreamErrorMsg: ", liveStreamErrorMsg);
+  }
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -109,21 +155,26 @@ export default function App() {
   }
 
   // Join the room with the generated token
-  const joinRoom = () => {
+  const joinRoom = (isOwner: boolean) => {
     if (!callObject) {
       return;
     }
 
-    console.log(room);
+    // Replace with your own room url
+    const url = `https://${room}`;
 
-    callObject
-      .join({
-        // Replace with your own room url
-        url: `https://${room}`,
-      })
-      .catch((err) => {
-        console.error("Error joining room:", err);
-      });
+    const callOptions: DailyCallOptions = isOwner
+      ? {
+          url,
+          token: process.env.REACT_APP_ROOM_TOKEN,
+        }
+      : {
+          url,
+        };
+
+    callObject.join(callOptions).catch((err) => {
+      console.error("Error joining room:", err);
+    });
     console.log("joined!");
   };
 
@@ -149,32 +200,45 @@ export default function App() {
     console.log("started camera");
   };
 
-  const meetingJoined = (evt: DailyEventObjectParticipants) => {
-    console.log("You joined the meeting: ", evt);
-  };
+  const meetingJoined = useCallback(
+    (evt: DailyEventObjectParticipants) => {
+      console.log("You joined the meeting: ", evt);
+      if (isLocalOwner) {
+        startLiveStreaming({
+          rtmpUrl: process.env.REACT_APP_RTMP_URL,
+        });
+      }
+    },
+    [isLocalOwner, startLiveStreaming]
+  );
 
-  const participantJoined = (evt: DailyEventObjectParticipant) => {
-    if (!callObject) return;
-
-    console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
-  };
-
-  const updateParticipant = (evt: DailyEventObjectParticipant) => {
-    console.log("Participant updated: ", evt);
-  };
+  const meetingLeft = useCallback(() => {
+    setMeetingState("left-meeting");
+  }, []);
 
   // Remove video elements and leave the room
-  function leaveRoom() {
+  const leaveRoom = useCallback(() => {
+    console.log("--- called inside leaveRoom", callObject);
     if (!callObject) {
       return;
     }
+
+    if (isLocalOwner) {
+      stopLiveStreaming();
+    }
+
     callObject.leave().catch((err) => {
       console.error("Error leaving room:", err);
     });
-  }
+  }, [callObject, isLocalOwner, stopLiveStreaming]);
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", leaveRoom);
+
+    return () => {
+      window.removeEventListener("beforeunload", leaveRoom);
+    };
+  }, [leaveRoom]);
 
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
@@ -217,17 +281,11 @@ export default function App() {
     callObject.setLocalVideo(true);
   }
 
-  function logEvent(evt: DailyEventObject) {
-    console.log("logEvent: " + evt.action, evt);
-  }
-
   useDailyEvent("joining-meeting", logEvent);
 
   useDailyEvent("joined-meeting", meetingJoined);
 
-  useDailyEvent("participant-joined", participantJoined);
-
-  useDailyEvent("participant-updated", updateParticipant);
+  useDailyEvent("left-meeting", meetingLeft);
 
   useDailyEvent("track-started", logEvent);
 
@@ -244,16 +302,6 @@ export default function App() {
   useDailyEvent("load-attempt-failed", logEvent);
 
   useDailyEvent("receive-settings-updated", logEvent);
-
-  useDailyEvent(
-    "left-meeting",
-    useCallback((ev) => {
-      logEvent(ev);
-      setMeetingState("left-meeting");
-    }, [])
-  );
-
-  useDailyEvent("participant-left", logEvent);
 
   // useDailyEvent("network-connection", logEvent);
 
@@ -284,7 +332,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  if (meetingState === "left-meeting") return <div>Left meeting</div>;
+  // if (meetingState === "left-meeting") return <div>Left meeting</div>;
 
   return (
     <>
@@ -293,8 +341,10 @@ export default function App() {
         1. Join the call
         <br />
         {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
+        {isLocalOwner ? `isLocalOwner: true` : false}
         <br />
-        <button onClick={() => joinRoom()}>Join call</button>
+        <button onClick={() => joinRoom(true)}>Join call: Owner</button>
+        <button onClick={() => joinRoom(false)}>Join call: Non-owner</button>
         <br />
         <hr />
         <br />
@@ -362,7 +412,25 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+        <button
+          onClick={() => {
+            startLiveStreaming({
+              rtmpUrl: process.env.REACT_APP_RTMP_URL,
+            });
+          }}
+        >
+          Start Live Streaming
+        </button>
+        <button
+          onClick={() => {
+            stopLiveStreaming();
+          }}
+        >
+          Stop Live Streaming
+        </button>
       </div>
+      <div>Is live streaming: {String(isLiveStreaming)}</div>
+
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
