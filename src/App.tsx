@@ -27,6 +27,12 @@ console.log("Daily version: %s", Daily.version());
 export default function App() {
   const callObject = useDaily();
   const participantIds = useParticipantIds();
+  const { micState, camState } = useDevices();
+
+  console.group("mic and cam state");
+  console.log("--- micState:", micState);
+  console.log("--- camState:", camState);
+  console.groupEnd();
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -310,6 +316,10 @@ export default function App() {
             </option>
           ))}
         </select>
+        <br />
+        <span>
+          Mic state: {micState}, Cam state: {camState}
+        </span>
         <br />
         <select
           id="mic-devices"
