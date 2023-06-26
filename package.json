@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.46.0",
-    "@daily-co/daily-react": "^0.9.0",
+    "@daily-co/daily-react": "^0.10.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

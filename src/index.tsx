@@ -9,6 +9,7 @@ import App from "./App";
 // Account & room settings
 const dailyConfig: DailyCallOptions["dailyConfig"] = {
   useDevicePreferenceCookies: true,
+  v2CamAndMic: true,
 };
 
 const callObject = Daily.createCallObject({
