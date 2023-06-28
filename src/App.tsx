@@ -18,6 +18,8 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useMeetingSessionState,
+  useActiveParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -49,6 +51,15 @@ export default function App() {
     setSpeaker,
   } = useDevices();
 
+  const activeParticipant = useActiveParticipant();
+
+  if (activeParticipant) {
+    console.log("--- activeParticipant change:", activeParticipant);
+  }
+
+  const { data } = useMeetingSessionState();
+  console.log("--- meetingSessionState: ", data);
+
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
       console.log("Input settings error (daily-react)", ev);
@@ -68,6 +79,18 @@ export default function App() {
   useDailyEvent("camera-error", (evt: DailyEventObjectCameraError) => {
     console.log(evt);
   });
+
+  function setMeetingSessionData() {
+    if (!callObject) return;
+
+    callObject.setMeetingSessionData(
+      {
+        foo: "bar",
+        time: new Date().toISOString(),
+      },
+      "shallow-merge"
+    );
+  }
 
   function enableBlur() {
     if (!callObject || enableBlurClicked) {
@@ -361,6 +384,10 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
+        <button onClick={() => setMeetingSessionData()}>
+          Set session data
+        </button>
+        <br />
         <br />
       </div>
       {participantIds.map((id) => (
