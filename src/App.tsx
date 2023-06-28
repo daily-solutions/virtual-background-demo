@@ -27,7 +27,17 @@ console.log("Daily version: %s", Daily.version());
 export default function App() {
   const callObject = useDaily();
   const participantIds = useParticipantIds();
-  const { micState, camState } = useDevices();
+
+  const {
+    cameras,
+    setCamera,
+    microphones,
+    setMicrophone,
+    speakers,
+    setSpeaker,
+    micState,
+    camState,
+  } = useDevices();
 
   console.group("mic and cam state");
   console.log("--- micState:", micState);
@@ -45,15 +55,6 @@ export default function App() {
   >();
 
   const network = useNetwork();
-
-  const {
-    cameras,
-    setCamera,
-    microphones,
-    setMicrophone,
-    speakers,
-    setSpeaker,
-  } = useDevices();
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -310,11 +311,13 @@ export default function App() {
           value={currentCamera?.device?.deviceId}
           onChange={handleChangeVideoDevice}
         >
-          {cameras.map((cam) => (
-            <option key={cam.device.deviceId} value={cam.device.deviceId}>
-              {cam.device.label}
-            </option>
-          ))}
+          {cameras
+            .filter((cam) => cam.device.label.includes("Face"))
+            .map((cam) => (
+              <option key={cam.device.deviceId} value={cam.device.deviceId}>
+                {cam.device.label}
+              </option>
+            ))}
         </select>
         <br />
         <span>
