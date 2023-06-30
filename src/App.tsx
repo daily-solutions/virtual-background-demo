@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
+  DailyEventObjectCpuLoadEvent,
   DailyEventObjectInputSettingsUpdated,
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
@@ -68,6 +69,18 @@ export default function App() {
   useDailyEvent("camera-error", (evt: DailyEventObjectCameraError) => {
     console.log(evt);
   });
+
+  useDailyEvent(
+    "cpu-load-change",
+    useCallback((ev: DailyEventObjectCpuLoadEvent) => {
+      console.log(
+        "CPU LOAD CHANGE:",
+        ev.action,
+        ev.cpuLoadState,
+        ev.cpuLoadStateReason
+      );
+    }, [])
+  );
 
   function enableBlur() {
     if (!callObject || enableBlurClicked) {
@@ -293,6 +306,24 @@ export default function App() {
         1. Join the call
         <br />
         {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
+        <button
+          onClick={() => {
+            const wait = () =>
+              new Promise<void>((res) => setTimeout(() => res(), 0));
+            async function timeWaster() {
+              let x = 0;
+              while (true) {
+                x++;
+                if (x % 10000000 === 0) {
+                  await wait();
+                }
+              }
+            }
+            timeWaster();
+          }}
+        >
+          Increase CPU
+        </button>
         <br />
         <button onClick={() => joinRoom()}>Join call</button>
         <br />
@@ -364,7 +395,18 @@ export default function App() {
         <br />
       </div>
       {participantIds.map((id) => (
-        <DailyVideo type="video" key={id} automirror sessionId={id} />
+        <div
+          style={{ height: "150px", width: "150px", display: "inline-block" }}
+        >
+          <DailyVideo
+            height="150px"
+            width="150px"
+            type="video"
+            key={id}
+            automirror
+            sessionId={id}
+          />{" "}
+        </div>
       ))}
       {screens.map((screen) => (
         <DailyVideo
