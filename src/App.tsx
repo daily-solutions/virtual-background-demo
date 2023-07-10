@@ -42,12 +42,17 @@ export default function App() {
 
   const {
     cameras,
-    setCamera,
+    camState,
     microphones,
+    micState,
+    refreshDevices,
+    setCamera,
     setMicrophone,
-    speakers,
     setSpeaker,
+    speakers,
   } = useDevices();
+
+  console.log("-- camState: %s micState: %s", camState, micState);
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -361,7 +366,10 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
+        <button onClick={() => refreshDevices()}>Refresh Devices</button>
         <br />
+        <span>camState: {camState} </span>
+        <span>micState: {micState}</span>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
