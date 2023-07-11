@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
   DailyEventObjectInputSettingsUpdated,
+  DailyEventObjectNoPayload,
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
@@ -18,6 +19,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useMeetingState,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -31,6 +33,7 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
+  const meetingState = useMeetingState();
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
@@ -38,6 +41,8 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
+  const [performanceEntries, setPerformanceEntries] =
+    useState<PerformanceEntryList | null>(null);
 
   const network = useNetwork();
 
@@ -76,15 +81,39 @@ export default function App() {
   }, []);
 
   useDailyEvent("participant-joined", participantJoined);
-  useDailyEvent("joining-meeting", logEvent);
-  useDailyEvent("joined-meeting", logEvent);
+  useDailyEvent(
+    "joining-meeting",
+    useCallback((evt) => {
+      logEvent(evt);
+      performance.mark("meeting-joining-fired");
+    }, [])
+  );
+  useDailyEvent(
+    "joined-meeting",
+    useCallback((evt) => {
+      logEvent(evt);
+      performance.mark("meeting-joined-fired");
+    }, [])
+  );
   useDailyEvent("participant-updated", logEvent);
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
   useDailyEvent("input-settings-updated", logEvent);
-  useDailyEvent("loading", logEvent);
-  useDailyEvent("loaded", logEvent);
+  useDailyEvent(
+    "loading",
+    useCallback((evt) => {
+      logEvent(evt);
+      performance.mark("loading-fired");
+    }, [])
+  );
+  useDailyEvent(
+    "loaded",
+    useCallback((evt) => {
+      logEvent(evt);
+      performance.mark("loaded-fired");
+    }, [])
+  );
   useDailyEvent("load-attempt-failed", logEvent);
   useDailyEvent("receive-settings-updated", logEvent);
   useDailyEvent("left-meeting", logEvent);
@@ -146,6 +175,8 @@ export default function App() {
 
     console.log(room);
 
+    performance.mark("join-clicked");
+
     callObject
       .join({
         // Replace with your own room url
@@ -171,6 +202,7 @@ export default function App() {
     if (!callObject) {
       return;
     }
+
     callObject.load({
       url: `https://${room}`,
     });
@@ -244,6 +276,33 @@ export default function App() {
   const presentParticipantCount = callObject?.participantCounts().present ?? 0;
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
+  useEffect(() => {
+    if (meetingState !== "joined-meeting") {
+      return;
+    }
+
+    performance.measure(
+      "loading-fired-to-loaded-fired",
+      "loading-fired",
+      "loaded-fired"
+    );
+
+    performance.measure(
+      "loaded-fired-to-meeting-joined-fired",
+      "loaded-fired",
+      "meeting-joined-fired"
+    );
+
+    performance.measure(
+      "join-clicked-to-meeting-joined-fired",
+      "join-clicked",
+      "meeting-joined-fired"
+    );
+
+    setPerformanceEntries(performance.getEntries());
+  }, [meetingState]);
+
+  if (meetingState === "left-meeting") return <div>Left meeting</div>;
 
   return (
     <>
@@ -258,6 +317,39 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button>
         <br />
+        <table>
+          <thead>
+            <tr>
+              <th>Performance entries</th>
+            </tr>
+            <tr>
+              <th>Name</th>
+              <th>Entry Type</th>
+              <th>Duration</th>
+              <th>Start Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {performanceEntries
+              ?.sort((a, b) => {
+                return a.startTime < b.startTime ? -1 : 1;
+              })
+              .filter(
+                ({ entryType }) =>
+                  entryType === "measure" || entryType === "mark"
+              )
+              .map((entry) => {
+                return (
+                  <tr key={entry.name}>
+                    <td>{entry.name}</td>
+                    <td>{entry.entryType}</td>
+                    <td>{entry.duration.toFixed(2)}</td>
+                    <td>{entry.startTime.toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
         <hr />
         <br />
         2. Select your device <br />
@@ -336,7 +428,7 @@ export default function App() {
       ))}
       <DailyAudio />
 
-      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
+      <div id="meetingState">Meeting State: {meetingState}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
