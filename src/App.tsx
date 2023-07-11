@@ -135,6 +135,15 @@ export default function App() {
     callObject.startCamera();
   };
 
+  const load = () => {
+    if (!callObject) {
+      return;
+    }
+    callObject.load({
+      url: `https://${room}`,
+    });
+  };
+
   const preAuth = () => {
     if (!callObject) {
       return;
@@ -294,6 +303,9 @@ export default function App() {
         <br />
         {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
         <br />
+        <button onClick={() => load()}>Load</button> <br />
+        <button onClick={() => preAuth()}>Preauth</button> <br />
+        <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button>
         <br />
         <hr />
@@ -357,8 +369,6 @@ export default function App() {
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
-        <button onClick={() => preAuth()}>Preauth</button> <br />
-        <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
