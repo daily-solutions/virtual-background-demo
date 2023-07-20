@@ -132,7 +132,9 @@ export default function App() {
       return;
     }
 
-    callObject.startCamera();
+    callObject.startCamera().then((res) => {
+      console.log("startCamera: ", res);
+    });
   };
 
   const load = () => {
