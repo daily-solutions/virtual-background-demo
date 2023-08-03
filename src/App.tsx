@@ -9,15 +9,17 @@ import Daily, {
 } from "@daily-co/daily-js";
 
 import {
-  useDaily,
-  useDevices,
-  useDailyEvent,
-  useScreenShare,
-  DailyVideo,
-  useParticipantIds,
   DailyAudio,
+  DailyVideo,
+  useDaily,
+  useDailyEvent,
+  useDevices,
   useInputSettings,
+  useLocalSessionId,
   useNetwork,
+  useParticipantIds,
+  useScreenShare,
+  useVideoTrack,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -225,6 +227,70 @@ export default function App() {
     callObject.setLocalVideo(true);
   }
 
+  const localSessionId = useLocalSessionId();
+  const videoTrack = useVideoTrack(localSessionId);
+
+  function insertScreenshotImage(imageData: ImageData): void {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to create a canvas context.");
+    }
+
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    ctx.putImageData(imageData, 0, 0);
+
+    const img = document.createElement("img");
+    img.src = canvas.toDataURL(); // Convert canvas content to a data URL
+
+    document.body.appendChild(img);
+  }
+
+  function takeScreenshot() {
+    const { persistentTrack } = videoTrack;
+    console.log("videoTrack:", videoTrack);
+    if (!persistentTrack || videoTrack.isOff) {
+      console.log(persistentTrack);
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    const video = document.createElement("video");
+
+    video.srcObject = new MediaStream([persistentTrack]);
+
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Failed to create a canvas context.");
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      console.log("imageData:", imageData);
+      insertScreenshotImage(imageData);
+      // Clean up
+      video.srcObject = null;
+      video.remove();
+      canvas.remove();
+      return imageData;
+    };
+
+    video.onerror = (error) => {
+      if (typeof error === "string") throw new Error(error);
+      throw error;
+    };
+
+    // Important: there needs to be some user action on the page beforehand
+    // or else this will fail in Safari!
+    video.play().catch((err) => {
+      console.error("Screenshot error: ", err);
+    });
+  }
+
   function logEvent(evt: DailyEventObject) {
     console.log("logEvent: " + evt.action, evt);
   }
@@ -371,6 +437,13 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+        <button
+          onClick={() => {
+            takeScreenshot();
+          }}
+        >
+          Take screenshot{" "}
+        </button>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
