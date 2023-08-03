@@ -34,9 +34,6 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [meetingState, setMeetingState] = useState<
-    "pre-auth" | "joined" | "left-meeting"
-  >();
 
   const network = useNetwork();
 
@@ -260,7 +257,6 @@ export default function App() {
     "left-meeting",
     useCallback((ev) => {
       logEvent(ev);
-      setMeetingState("left-meeting");
     }, [])
   );
 
@@ -295,7 +291,8 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  if (meetingState === "left-meeting") return <div>Left meeting</div>;
+  if (callObject?.meetingState() === "left-meeting")
+    return <div>Left meeting</div>;
 
   return (
     <>
@@ -388,9 +385,7 @@ export default function App() {
       ))}
       <DailyAudio />
 
-      <div id="meetingState">
-        Meeting State: {callObject?.meetingState()} {meetingState}
-      </div>
+      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
