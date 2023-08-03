@@ -249,9 +249,7 @@ export default function App() {
 
   function takeScreenshot() {
     const { persistentTrack } = videoTrack;
-    console.log("videoTrack:", videoTrack);
     if (!persistentTrack || videoTrack.isOff) {
-      console.log(persistentTrack);
       return;
     }
     const canvas = document.createElement("canvas");
@@ -270,7 +268,6 @@ export default function App() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      console.log("imageData:", imageData);
       insertScreenshotImage(imageData);
       // Clean up
       video.srcObject = null;
