@@ -230,23 +230,6 @@ export default function App() {
   const localSessionId = useLocalSessionId();
   const videoTrack = useVideoTrack(localSessionId);
 
-  function insertScreenshotImage(imageData: ImageData): void {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error("Failed to create a canvas context.");
-    }
-
-    canvas.width = imageData.width;
-    canvas.height = imageData.height;
-    ctx.putImageData(imageData, 0, 0);
-
-    const img = document.createElement("img");
-    img.src = canvas.toDataURL(); // Convert canvas content to a data URL
-
-    document.body.appendChild(img);
-  }
-
   function takeScreenshot() {
     const { persistentTrack } = videoTrack;
     if (!persistentTrack || videoTrack.isOff) {
@@ -268,7 +251,10 @@ export default function App() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      insertScreenshotImage(imageData);
+      const img = document.createElement("img");
+      img.src = canvas.toDataURL(); // Convert canvas content to a data URL
+
+      document.body.appendChild(img);
       // Clean up
       video.srcObject = null;
       video.remove();
