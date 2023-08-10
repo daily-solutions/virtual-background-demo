@@ -22,7 +22,9 @@ import {
 
 import "./styles.css";
 
-console.log("Daily version: %s", Daily.version());
+console.info("Daily version: %s", Daily.version());
+console.info("Daily supported Browser:");
+console.dir(Daily.supportedBrowser());
 
 export default function App() {
   const callObject = useDaily();
@@ -264,7 +266,13 @@ export default function App() {
 
   // useDailyEvent("network-connection", logEvent);
 
-  // useDailyEvent("network-quality-change", logEvent);
+  useDailyEvent("network-quality-change", (ev) => {
+    console.log(ev);
+  });
+
+  callObject?.on("network-quality-change", (ev) => {
+    console.log(ev);
+  });
 
   useDailyEvent("camera-error", (evt) => {
     console.log("camera-error", evt);
