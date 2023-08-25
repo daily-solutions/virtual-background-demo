@@ -6,6 +6,7 @@ import Daily, {
   DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
   DailyEventObjectParticipants,
+  DailyParticipant,
 } from "@daily-co/daily-js";
 
 import {
@@ -30,7 +31,44 @@ export default function App() {
   const callObject = useDaily();
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
-  const participantIds = useParticipantIds();
+  const participantIds = useParticipantIds({ filter: "remote" });
+
+  const subscribedOrStagedVideoIds = useParticipantIds({
+    filter: useCallback(
+      (p: DailyParticipant) => Boolean(p.tracks.video.subscribed),
+      []
+    ),
+  });
+
+  const subscribedOrStagedAudioIds = useParticipantIds({
+    filter: useCallback(
+      (p: DailyParticipant) => Boolean(p.tracks.audio.subscribed),
+      []
+    ),
+  });
+
+  const subscribedOrStagedScreenIds = useParticipantIds({
+    filter: useCallback(
+      (p: DailyParticipant) => Boolean(p.tracks.screenVideo.subscribed),
+      []
+    ),
+  });
+
+  console.log(
+    "subscribedOrStagedVideoIds total %s: %s",
+    subscribedOrStagedVideoIds.length,
+    subscribedOrStagedVideoIds
+  );
+  console.log(
+    "subscribedOrStagedAudioIds total %s: %s",
+    subscribedOrStagedAudioIds.length,
+    subscribedOrStagedAudioIds
+  );
+  console.log(
+    "subscribedOrStagedScreenIds total %s: %s",
+    subscribedOrStagedScreenIds.length,
+    subscribedOrStagedScreenIds
+  );
 
   const queryParams = new URLSearchParams(window.location.search);
   const room = queryParams.get("room");
