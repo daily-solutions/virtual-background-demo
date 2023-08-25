@@ -28,6 +28,8 @@ console.dir(Daily.supportedBrowser());
 
 export default function App() {
   const callObject = useDaily();
+  // @ts-expect-error add callObject to window for debugging
+  window.callObject = callObject;
   const participantIds = useParticipantIds();
 
   const queryParams = new URLSearchParams(window.location.search);
