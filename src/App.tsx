@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectCameraError,
@@ -66,13 +66,21 @@ export default function App() {
     onTranscriptionStarted() {
       console.info("Transcription started.");
     },
-    onTranscriptionStopped() {
-      console.info("Transcription stopped.");
-    },
   });
 
   const [selectedLanguage, setSelectedLanguage] = useState<"en-US" | "zh-TW">(
     "en-US"
+  );
+  const shouldRestartTranscription = useRef(false);
+  useDailyEvent(
+    "transcription-stopped",
+    useCallback(() => {
+      if (!shouldRestartTranscription.current) return;
+      startTranscription({
+        model: "general",
+        language: selectedLanguage,
+      });
+    }, [selectedLanguage, startTranscription])
   );
 
   const { errorMsg, updateInputSettings } = useInputSettings({
@@ -411,12 +419,16 @@ export default function App() {
           onChange={(ev) => {
             if (ev.target.value === "en-US" || ev.target.value === "zh-TW") {
               console.log("!!! changing language", ev.target.value);
-              stopTranscription();
-              startTranscription({
-                model: "general",
-                language: ev.target.value,
-              });
               setSelectedLanguage(ev.target.value);
+              if (isTranscribing) {
+                shouldRestartTranscription.current = true;
+                stopTranscription();
+              } else {
+                startTranscription({
+                  model: "general",
+                  language: selectedLanguage,
+                });
+              }
             }
           }}
         >
