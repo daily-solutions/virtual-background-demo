@@ -18,9 +18,11 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useTranscription,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
+import { start } from "repl";
 
 console.info("Daily version: %s", Daily.version());
 console.info("Daily supported Browser:");
@@ -49,6 +51,29 @@ export default function App() {
     speakers,
     setSpeaker,
   } = useDevices();
+
+  const {
+    isTranscribing,
+    startTranscription,
+    stopTranscription,
+    language,
+    error,
+    transcriptions,
+  } = useTranscription({
+    onTranscriptionError: (ev) => {
+      console.error("Couldn't start transcription.");
+    },
+    onTranscriptionStarted() {
+      console.info("Transcription started.");
+    },
+    onTranscriptionStopped() {
+      console.info("Transcription stopped.");
+    },
+  });
+
+  const [selectedLanguage, setSelectedLanguage] = useState<"en-US" | "zh-TW">(
+    "en-US"
+  );
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -121,6 +146,7 @@ export default function App() {
       .join({
         // Replace with your own room url
         url: `https://${room}`,
+        token: process.env.REACT_APP_ROOM_TOKEN,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -377,7 +403,37 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+        <button onClick={() => leaveRoom()}>Leave call</button>
+        <br />
+        <select
+          id="languages"
+          value={selectedLanguage}
+          onChange={(ev) => {
+            if (ev.target.value === "en-US" || ev.target.value === "zh-TW") {
+              console.log("!!! changing language", ev.target.value);
+              stopTranscription();
+              startTranscription({
+                model: "general",
+                language: ev.target.value,
+              });
+              setSelectedLanguage(ev.target.value);
+            }
+          }}
+        >
+          <option value="en-US">English</option>
+          <option value="zh-TW">Chinese</option>
+        </select>
       </div>
+      <p>Language: {language}</p>
+      <p>Error: {error}</p>
+      {isTranscribing ? (
+        <p>
+          <textarea
+            readOnly
+            value={transcriptions.map((t) => `${t.user_id}: ${t.text}`)}
+          ></textarea>
+        </p>
+      ) : null}
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
