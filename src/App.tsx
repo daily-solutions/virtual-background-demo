@@ -22,7 +22,6 @@ import {
 } from "@daily-co/daily-react";
 
 import "./styles.css";
-import { start } from "repl";
 
 console.info("Daily version: %s", Daily.version());
 console.info("Daily supported Browser:");
