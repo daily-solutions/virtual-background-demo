@@ -266,11 +266,9 @@ export default function App() {
 
   useDailyEvent("participant-left", logEvent);
 
-  // useDailyEvent("network-connection", logEvent);
+  useDailyEvent("network-connection", logEvent);
 
-  // useDailyEvent("network-quality-change", (ev) => {
-  //   console.log(ev);
-  // });
+  // useDailyEvent("network-quality-change", logEvent);
 
   useDailyEvent("camera-error", (evt) => {
     console.log("camera-error", evt);
