@@ -380,6 +380,36 @@ export default function App() {
       <div>
         <h2>Participants</h2>
         <ul>
+          <li>
+            invalid-participant-id{" "}
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: true, video: true },
+                });
+              }}
+            >
+              Subscribe
+            </button>
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: false, video: false },
+                });
+              }}
+            >
+              Unsubscribe
+            </button>
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: "staged", video: "staged" },
+                });
+              }}
+            >
+              Stage
+            </button>
+          </li>
           {participantIds.map((id) => (
             /* Add buttons to subscribe and unsubscribe from each participant */
             <li key={id}>
