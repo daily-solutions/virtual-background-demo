@@ -18,6 +18,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useParticipantProperty,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -169,9 +170,9 @@ export default function App() {
     if (!callObject) return;
 
     console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
+    // callObject.updateParticipant(evt.participant.session_id, {
+    //   setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    // });
   };
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
@@ -375,6 +376,44 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+      </div>
+      <div>
+        <h2>Participants</h2>
+        <ul>
+          {participantIds.map((id) => (
+            /* Add buttons to subscribe and unsubscribe from each participant */
+            <li key={id}>
+              {id}{" "}
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: true, video: true },
+                  });
+                }}
+              >
+                Subscribe
+              </button>
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: false, video: false },
+                  });
+                }}
+              >
+                Unsubscribe
+              </button>
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: "staged", video: "staged" },
+                  });
+                }}
+              >
+                Stage
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
