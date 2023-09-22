@@ -19,6 +19,7 @@ import {
   useInputSettings,
   useNetwork,
   useParticipantProperty,
+  useParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -26,6 +27,20 @@ import "./styles.css";
 console.info("Daily version: %s", Daily.version());
 console.info("Daily supported Browser:");
 console.dir(Daily.supportedBrowser());
+
+function ParticipantInfo({ participantId }: { participantId: string }) {
+  const participant = useParticipant(participantId);
+
+  if (!participant) return null;
+
+  return (
+    <div>
+      <div>Participant: {participantId}</div>
+      <div>Audio: {participant.tracks.audio.subscribed ? "true" : "false"}</div>
+      <div>Video: {participant.tracks.video.subscribed ? "true" : "false"}</div>
+    </div>
+  );
+}
 
 export default function App() {
   const callObject = useDaily();
@@ -441,6 +456,7 @@ export default function App() {
               >
                 Stage
               </button>
+              <ParticipantInfo participantId={id} />
             </li>
           ))}
         </ul>
