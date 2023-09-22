@@ -18,6 +18,8 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useParticipantProperty,
+  useParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -25,6 +27,20 @@ import "./styles.css";
 console.info("Daily version: %s", Daily.version());
 console.info("Daily supported Browser:");
 console.dir(Daily.supportedBrowser());
+
+function ParticipantInfo({ participantId }: { participantId: string }) {
+  const participant = useParticipant(participantId);
+
+  if (!participant) return null;
+
+  return (
+    <div>
+      <div>Participant: {participantId}</div>
+      <div>Audio: {participant.tracks.audio.subscribed ? "true" : "false"}</div>
+      <div>Video: {participant.tracks.video.subscribed ? "true" : "false"}</div>
+    </div>
+  );
+}
 
 export default function App() {
   const callObject = useDaily();
@@ -169,9 +185,9 @@ export default function App() {
     if (!callObject) return;
 
     console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
+    // callObject.updateParticipant(evt.participant.session_id, {
+    //   setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    // });
   };
 
   const updateParticipant = (evt: DailyEventObjectParticipant) => {
@@ -375,6 +391,75 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button> <br />
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+      </div>
+      <div>
+        <h2>Participants</h2>
+        <ul>
+          <li>
+            invalid-participant-id{" "}
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: true, video: true },
+                });
+              }}
+            >
+              Subscribe
+            </button>
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: false, video: false },
+                });
+              }}
+            >
+              Unsubscribe
+            </button>
+            <button
+              onClick={() => {
+                callObject?.updateParticipant("invalid-participant-id", {
+                  setSubscribedTracks: { audio: "staged", video: "staged" },
+                });
+              }}
+            >
+              Stage
+            </button>
+          </li>
+          {participantIds.map((id) => (
+            /* Add buttons to subscribe and unsubscribe from each participant */
+            <li key={id}>
+              {id}{" "}
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: true, video: true },
+                  });
+                }}
+              >
+                Subscribe
+              </button>
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: false, video: false },
+                  });
+                }}
+              >
+                Unsubscribe
+              </button>
+              <button
+                onClick={() => {
+                  callObject?.updateParticipant(id, {
+                    setSubscribedTracks: { audio: "staged", video: "staged" },
+                  });
+                }}
+              >
+                Stage
+              </button>
+              <ParticipantInfo participantId={id} />
+            </li>
+          ))}
+        </ul>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
