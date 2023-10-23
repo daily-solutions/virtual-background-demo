@@ -295,9 +295,6 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  if (callObject?.meetingState() === "left-meeting")
-    return <div>Left meeting</div>;
-
   return (
     <>
       <div className="App">
