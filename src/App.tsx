@@ -183,9 +183,17 @@ export default function App() {
     if (!callObject) {
       return;
     }
-    callObject.leave().catch((err) => {
-      console.error("Error leaving room:", err);
-    });
+    callObject
+      .leave()
+      .then((e) => {
+        console.log("LEAVE RESOLVED", e);
+      })
+      .catch((err) => {
+        console.error("Error leaving room:", err);
+      })
+      .finally(() => {
+        console.log("LEAVE FINALLY");
+      });
   }
 
   // change video device
@@ -307,6 +315,7 @@ export default function App() {
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button>
+        <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <hr />
         <br />
@@ -365,7 +374,6 @@ export default function App() {
         </button>
         <button onClick={() => startScreenShare()}>Start Screen Share</button>
         <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
-        <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <br />
         <button onClick={() => getInputDevices()}>Input Devices</button> <br />
