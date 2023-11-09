@@ -62,13 +62,42 @@ export default function App() {
 
   const { startScreenShare, stopScreenShare, screens } = useScreenShare();
 
-  const currentCamera = cameras.find((c) => c.selected);
-  const currentMicrophone = microphones.find((m) => m.selected);
-  const currentSpeaker = speakers.find((s) => s.selected);
+  const logEvent = useCallback((evt: DailyEventObject) => {
+    console.log("logEvent: " + evt.action, evt);
+  }, []);
 
-  useDailyEvent("camera-error", (evt: DailyEventObjectCameraError) => {
-    console.log(evt);
-  });
+  const participantJoined = useCallback((evt: DailyEventObjectParticipant) => {
+    if (!callObject) return;
+
+    console.log("Participant joined meeting: ", evt);
+    callObject.updateParticipant(evt.participant.session_id, {
+      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
+    });
+  }, []);
+
+  useDailyEvent("participant-joined", participantJoined);
+  useDailyEvent("joining-meeting", logEvent);
+  useDailyEvent("joined-meeting", logEvent);
+  useDailyEvent("participant-updated", logEvent);
+  useDailyEvent("track-started", logEvent);
+  useDailyEvent("track-stopped", logEvent);
+  useDailyEvent("started-camera", logEvent);
+  useDailyEvent("input-settings-updated", logEvent);
+  useDailyEvent("loading", logEvent);
+  useDailyEvent("loaded", logEvent);
+  useDailyEvent("load-attempt-failed", logEvent);
+  useDailyEvent("receive-settings-updated", logEvent);
+  useDailyEvent("left-meeting", logEvent);
+  useDailyEvent("participant-left", logEvent);
+  useDailyEvent("network-connection", logEvent);
+
+  // useDailyEvent("network-quality-change", logEvent);
+  useDailyEvent("camera-error", logEvent);
+  useDailyEvent("error", (evt) => logEvent);
+
+  // Error logging for background effects
+  useDailyEvent("input-settings-updated", logEvent);
+  useDailyEvent("nonfatal-error", logEvent);
 
   function enableBlur() {
     if (!callObject || enableBlurClicked) {
@@ -156,28 +185,6 @@ export default function App() {
     });
   };
 
-  // handle events
-  const startedCamera = () => {
-    console.log("started camera");
-  };
-
-  const meetingJoined = (evt: DailyEventObjectParticipants) => {
-    console.log("You joined the meeting: ", evt);
-  };
-
-  const participantJoined = (evt: DailyEventObjectParticipant) => {
-    if (!callObject) return;
-
-    console.log("Participant joined meeting: ", evt);
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
-  };
-
-  const updateParticipant = (evt: DailyEventObjectParticipant) => {
-    console.log("Participant updated: ", evt);
-  };
-
   // Remove video elements and leave the room
   function leaveRoom() {
     if (!callObject) {
@@ -190,19 +197,19 @@ export default function App() {
 
   // change video device
   function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
-    console.log("!!! changing video device");
+    console.log("--- changing video device");
     setCamera(ev.target.value);
   }
 
   // change mic device
   function handleChangeMicDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
-    console.log("!!! changing mic device");
+    console.log("--- changing mic device");
     setMicrophone(ev.target.value);
   }
 
   // change speaker device
   function handleChangeSpeakerDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
-    console.log("!!! changing speaker device");
+    console.log("--- changing speaker device");
     setSpeaker(ev?.target?.value);
   }
 
@@ -229,66 +236,9 @@ export default function App() {
     callObject.setLocalVideo(true);
   }
 
-  function logEvent(evt: DailyEventObject) {
-    console.log("logEvent: " + evt.action, evt);
-  }
-
-  useDailyEvent("joining-meeting", logEvent);
-
-  useDailyEvent("joined-meeting", meetingJoined);
-
-  useDailyEvent("participant-joined", participantJoined);
-
-  useDailyEvent("participant-updated", updateParticipant);
-
-  useDailyEvent("track-started", logEvent);
-
-  useDailyEvent("track-stopped", logEvent);
-
-  useDailyEvent("started-camera", startedCamera);
-
-  useDailyEvent("input-settings-updated", logEvent);
-
-  useDailyEvent("loading", logEvent);
-
-  useDailyEvent("loaded", logEvent);
-
-  useDailyEvent("load-attempt-failed", logEvent);
-
-  useDailyEvent("receive-settings-updated", logEvent);
-
-  useDailyEvent(
-    "left-meeting",
-    useCallback((ev) => {
-      logEvent(ev);
-    }, [])
-  );
-
-  useDailyEvent("participant-left", logEvent);
-
-  useDailyEvent("network-connection", logEvent);
-
-  // useDailyEvent("network-quality-change", logEvent);
-
-  useDailyEvent("camera-error", (evt) => {
-    console.log("camera-error", evt);
-  });
-
-  useDailyEvent("error", (evt) => {
-    console.log("error event", evt);
-  });
-
-  // Error logging for background effects
-  useDailyEvent(
-    "input-settings-updated",
-    (evt: DailyEventObjectInputSettingsUpdated) => {
-      console.log("input-settings-updated", evt);
-    }
-  );
-
-  useDailyEvent("nonfatal-error", (evt: DailyEventObjectNonFatalError) => {
-    console.log("nonfatal-error", evt);
-  });
+  const currentCamera = cameras.find((c) => c.selected);
+  const currentMicrophone = microphones.find((m) => m.selected);
+  const currentSpeaker = speakers.find((s) => s.selected);
 
   const hiddenParticipantCount = callObject?.participantCounts().hidden ?? 0;
   const presentParticipantCount = callObject?.participantCounts().present ?? 0;
