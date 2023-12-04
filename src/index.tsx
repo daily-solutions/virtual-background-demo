@@ -1,6 +1,4 @@
-import Daily from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
-import { DailyCallOptions } from "@daily-co/daily-js";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
