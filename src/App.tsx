@@ -1,19 +1,20 @@
-import React, { useCallback, useState } from "react";
+import React, { ChangeEvent, useCallback, useState } from "react";
 import Daily, {
   DailyEventObject,
-  DailyEventObjectParticipant,
+  DailyVideoSendSettingsPreset,
 } from "@daily-co/daily-js";
 
 import {
-  useDaily,
-  useDevices,
-  useDailyEvent,
-  useScreenShare,
-  DailyVideo,
-  useParticipantIds,
   DailyAudio,
+  DailyVideo,
+  useDaily,
+  useDailyEvent,
+  useDevices,
   useInputSettings,
   useNetwork,
+  useParticipantIds,
+  useScreenShare,
+  useSendSettings,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -27,7 +28,6 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
-  console.log(participantIds);
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -67,7 +67,6 @@ export default function App() {
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
-  useDailyEvent("input-settings-updated", logEvent);
   useDailyEvent("loading", logEvent);
   useDailyEvent("loaded", logEvent);
   useDailyEvent("load-attempt-failed", logEvent);
@@ -216,6 +215,63 @@ export default function App() {
     callObject.setLocalVideo(true);
   }
 
+  const { sendSettings, updateSendSettings } = useSendSettings();
+  const [sendSettingsPreset, setSendSettingsPreset] = useState<
+    DailyVideoSendSettingsPreset | "agora"
+  >("agora");
+  console.log("sendSettings", sendSettings);
+
+  const onSendSettingsChange = (
+    event: ChangeEvent<HTMLSelectElement>
+  ): void => {
+    const {
+      target: { value },
+    } = event;
+
+    switch (value) {
+      case "bandwidth-optimized":
+        updateSendSettings({
+          video: "bandwidth-optimized",
+        });
+        setSendSettingsPreset("bandwidth-optimized");
+        break;
+      case "quality-optimized":
+        updateSendSettings({
+          video: "quality-optimized",
+        });
+        setSendSettingsPreset("quality-optimized");
+        break;
+      case "bandwidth-and-quality-balanced":
+        updateSendSettings({
+          video: "bandwidth-and-quality-balanced",
+        });
+        setSendSettingsPreset("bandwidth-and-quality-balanced");
+        break;
+      case "agora":
+        updateSendSettings({
+          video: {
+            maxQuality: "medium",
+            encodings: {
+              low: {
+                maxBitrate: 200000,
+                scaleResolutionDownBy: 4,
+                maxFramerate: 30,
+              },
+              medium: {
+                maxBitrate: 1200000,
+                scaleResolutionDownBy: 1.333,
+                maxFramerate: 30,
+              },
+            },
+          },
+        });
+        setSendSettingsPreset("agora");
+        break;
+      default:
+        break;
+    }
+  };
+
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
   const currentSpeaker = speakers.find((s) => s.selected);
@@ -225,7 +281,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
 
   return (
     <>
@@ -252,7 +308,6 @@ export default function App() {
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <hr />
-        <br />
         2. Select your device <br />
         <select
           id="video-devices"
@@ -295,6 +350,20 @@ export default function App() {
             </option>
           ))}
         </select>
+        <br />
+        <hr />
+        3. Change send settings <br />
+        <select value={sendSettingsPreset} onChange={onSendSettingsChange}>
+          <option value="bandwidth-optimized">bandwidth-optimized</option>
+          <option value="quality-optimized">quality-optimized</option>
+          <option value="bandwidth-and-quality-balanced">
+            bandwidth-and-quality-balanced
+          </option>
+          <option value="agora">agora</option>
+        </select>{" "}
+        <br />
+        <strong>Current send settings</strong>
+        <pre>{JSON.stringify(sendSettings, null, 2)}</pre>
         <br />
         <br />
         <button disabled={enableBlurClicked} onClick={() => enableBlur()}>
