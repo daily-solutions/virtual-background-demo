@@ -210,15 +210,6 @@ export default function App() {
     setSpeaker(ev?.target?.value);
   }
 
-  function getInputDevices() {
-    if (!callObject) {
-      return;
-    }
-    callObject.getInputDevices().then((inputDevices) => {
-      console.log("List of devices:", inputDevices);
-    });
-  }
-
   function stopCamera() {
     if (!callObject) {
       return;
@@ -265,7 +256,8 @@ export default function App() {
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
-        <button onClick={() => joinRoom()}>Join call</button>
+        <button onClick={() => joinRoom()}>Join call</button> <br />
+        <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <hr />
         <br />
@@ -322,13 +314,11 @@ export default function App() {
         >
           Enable Background
         </button>
+        <br />
         <button onClick={() => startScreenShare()}>Start Screen Share</button>
         <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
-        <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
-        <br />
-        <button onClick={() => getInputDevices()}>Input Devices</button> <br />
-        <button onClick={() => stopCamera()}>Camera Off</button> <br />
+        <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
       </div>
