@@ -27,6 +27,7 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
+  console.log(participantIds);
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -59,16 +60,7 @@ export default function App() {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
-  const participantJoined = useCallback((evt: DailyEventObjectParticipant) => {
-    if (!callObject) return;
-    logEvent(evt);
-
-    callObject.updateParticipant(evt.participant.session_id, {
-      setSubscribedTracks: { audio: true, video: true, screenVideo: false },
-    });
-  }, []);
-
-  useDailyEvent("participant-joined", participantJoined);
+  useDailyEvent("participant-joined", logEvent);
   useDailyEvent("joining-meeting", logEvent);
   useDailyEvent("joined-meeting", logEvent);
   useDailyEvent("participant-updated", logEvent);
@@ -325,16 +317,15 @@ export default function App() {
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
-      {screens.map((screen) => (
+      {/* {screens.map((screen) => (
         <DailyVideo
           type="screenVideo"
           key={screen.screenId}
           automirror
           sessionId={screen.session_id}
         />
-      ))}
+      ))} */}
       <DailyAudio />
-
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
