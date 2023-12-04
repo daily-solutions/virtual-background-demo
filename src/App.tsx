@@ -1,11 +1,7 @@
 import React, { useCallback, useState } from "react";
 import Daily, {
   DailyEventObject,
-  DailyEventObjectCameraError,
-  DailyEventObjectInputSettingsUpdated,
-  DailyEventObjectNonFatalError,
   DailyEventObjectParticipant,
-  DailyEventObjectParticipants,
 } from "@daily-co/daily-js";
 
 import {
@@ -31,9 +27,6 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
-
-  const queryParams = new URLSearchParams(window.location.search);
-  const room = queryParams.get("room");
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -68,8 +61,8 @@ export default function App() {
 
   const participantJoined = useCallback((evt: DailyEventObjectParticipant) => {
     if (!callObject) return;
+    logEvent(evt);
 
-    console.log("Participant joined meeting: ", evt);
     callObject.updateParticipant(evt.participant.session_id, {
       setSubscribedTracks: { audio: true, video: true, screenVideo: false },
     });
@@ -144,12 +137,16 @@ export default function App() {
       return;
     }
 
-    console.log(room);
+    if (!dailyRoomUrl) {
+      alert("Please enter a room url (e.g. https://example.daily.co/room)");
+    }
+
+    console.log(dailyRoomUrl);
 
     callObject
       .join({
         // Replace with your own room url
-        url: `https://${room}`,
+        url: dailyRoomUrl,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -172,7 +169,7 @@ export default function App() {
       return;
     }
     callObject.load({
-      url: `https://${room}`,
+      url: `https://${dailyRoomUrl}`,
     });
   };
 
@@ -181,7 +178,7 @@ export default function App() {
       return;
     }
     callObject.preAuth({
-      url: `https://${room}`,
+      url: `https://${dailyRoomUrl}`,
     });
   };
 
@@ -245,14 +242,26 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+
   return (
     <>
       <div className="App">
         <br />
         1. Join the call
         <br />
-        {room ? `room=https://${room}` : "Add ?room=<room-id> to the url."}
-        <br />
+        <input
+          type="text"
+          value={dailyRoomUrl}
+          onChange={(event) => {
+            setDailyRoomUrl(event.target.value);
+          }}
+        />
+        <p>
+          {dailyRoomUrl
+            ? dailyRoomUrl
+            : "Please enter a room url (e.g. https://example.daily.co/room)"}
+        </p>
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
