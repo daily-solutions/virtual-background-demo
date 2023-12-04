@@ -1,5 +1,8 @@
 import React, { ChangeEvent, useCallback, useState } from "react";
-import Daily, { DailyEventObject } from "@daily-co/daily-js";
+import Daily, {
+  DailyEventObject,
+  DailyVideoSendSettingsPreset,
+} from "@daily-co/daily-js";
 
 import {
   DailyAudio,
@@ -25,7 +28,6 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
-  console.log(participantIds);
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -65,7 +67,6 @@ export default function App() {
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
-  useDailyEvent("input-settings-updated", logEvent);
   useDailyEvent("loading", logEvent);
   useDailyEvent("loaded", logEvent);
   useDailyEvent("load-attempt-failed", logEvent);
@@ -215,6 +216,10 @@ export default function App() {
   }
 
   const { sendSettings, updateSendSettings } = useSendSettings();
+  const [sendSettingsPreset, setSendSettingsPreset] = useState<
+    DailyVideoSendSettingsPreset | "agora"
+  >("agora");
+  console.log("sendSettings", sendSettings);
 
   const onSendSettingsChange = (
     event: ChangeEvent<HTMLSelectElement>
@@ -228,16 +233,19 @@ export default function App() {
         updateSendSettings({
           video: "bandwidth-optimized",
         });
+        setSendSettingsPreset("bandwidth-optimized");
         break;
       case "quality-optimized":
         updateSendSettings({
           video: "quality-optimized",
         });
+        setSendSettingsPreset("quality-optimized");
         break;
       case "bandwidth-and-quality-balanced":
         updateSendSettings({
           video: "bandwidth-and-quality-balanced",
         });
+        setSendSettingsPreset("bandwidth-and-quality-balanced");
         break;
       case "agora":
         updateSendSettings({
@@ -257,6 +265,7 @@ export default function App() {
             },
           },
         });
+        setSendSettingsPreset("agora");
         break;
       default:
         break;
@@ -344,7 +353,7 @@ export default function App() {
         <br />
         <hr />
         3. Change send settings <br />
-        <select value={"agora"} onChange={onSendSettingsChange}>
+        <select value={sendSettingsPreset} onChange={onSendSettingsChange}>
           <option value="bandwidth-optimized">bandwidth-optimized</option>
           <option value="quality-optimized">quality-optimized</option>
           <option value="bandwidth-and-quality-balanced">
