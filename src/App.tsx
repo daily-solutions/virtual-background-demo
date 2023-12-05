@@ -1,8 +1,5 @@
 import React, { useCallback, useState } from "react";
-import Daily, {
-  DailyEventObject,
-  DailyEventObjectParticipant,
-} from "@daily-co/daily-js";
+import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -199,7 +196,9 @@ export default function App() {
   // change speaker device
   function handleChangeSpeakerDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
     console.log("--- changing speaker device");
-    setSpeaker(ev?.target?.value);
+    if (Daily.supportedBrowser().name !== "Firefox") {
+      setSpeaker(ev?.target?.value);
+    }
   }
 
   function stopCamera() {
