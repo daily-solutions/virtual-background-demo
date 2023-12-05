@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
@@ -193,6 +193,16 @@ export default function App() {
     setMicrophone(ev.target.value);
   }
 
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (audioRef.current && Daily.supportedBrowser().name === "Firefox") {
+      // @ts-expect-error setSinkId is not in the types
+      // audioRef.current.setSinkId(preferredOutputDeviceId);
+      audioRef.current.setSinkId(null);
+    }
+  }, []);
+
   // change speaker device
   function handleChangeSpeakerDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
     console.log("--- changing speaker device");
@@ -324,7 +334,7 @@ export default function App() {
           sessionId={screen.session_id}
         />
       ))} */}
-      <DailyAudio />
+      <DailyAudio ref={audioRef} />
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
