@@ -199,19 +199,19 @@ export default function App() {
     setSpeaker(ev?.target?.value);
   }
 
-  function stopCamera() {
+  const stopCamera = () => {
     if (!callObject) {
       return;
     }
     callObject.setLocalVideo(false);
-  }
+  };
 
-  function updateCameraOn() {
+  const updateCameraOn = () => {
     if (!callObject) {
       return;
     }
     callObject.setLocalVideo(true);
-  }
+  };
 
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
