@@ -27,7 +27,6 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
-  console.log(participantIds);
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -132,8 +131,6 @@ export default function App() {
     if (!dailyRoomUrl) {
       alert("Please enter a room url (e.g. https://example.daily.co/room)");
     }
-
-    console.log(dailyRoomUrl);
 
     callObject
       .join({
