@@ -320,6 +320,70 @@ export default function App() {
     callObject.setLocalVideo(true);
   };
 
+  // Text box with submit that sets the state of the video url
+  const [videoUrl, setVideoUrl] = useState(
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+  );
+  // https://videoenginestoragedev.blob.core.windows.net/videoengine-event-522/revel_holiday_preshow.mp4
+
+  const handleVideoUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    setVideoUrl(event.target.value);
+  };
+
+  const startRemoteMedia = () => {
+    if (!callObject) {
+      return;
+    }
+    callObject
+      .startRemoteMediaPlayer({
+        url: videoUrl,
+      })
+      .catch((err) => {
+        console.error("Error starting remote media player:", err);
+      });
+  };
+
+  const stopRemoteMedia = () => {
+    if (!callObject || !remoteMediaPlayerParticipant) {
+      return;
+    }
+    callObject.stopRemoteMediaPlayer(remoteMediaPlayerParticipant);
+  };
+
+  const handleStartRecording = () => {
+    startRecording({
+      layout: {
+        preset: "custom",
+        composition_params: {
+          mode: "single",
+        },
+        // participants: {
+        //   video: participantIds,
+        //   audio: "*",
+        // },
+      },
+    });
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
+  };
+
+  const [updateRecordingClicked, setUpdateRecordingClicked] = useState(false);
+
+  const handleUpdateRecording = () => {
+    updateRecording({
+      layout: {
+        preset: "custom",
+        composition_params: {
+          mode: updateRecordingClicked ? "grid" : "single",
+        },
+      },
+    });
+    setUpdateRecordingClicked(!updateRecordingClicked);
+  };
+
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
   const currentSpeaker = speakers.find((s) => s.selected);
@@ -429,13 +493,20 @@ export default function App() {
         <br />
         <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
-        <button onClick={() => startRecording()}>Start Recording</button>
-        <button onClick={() => stopRecording()}>Stop Recording</button>
         <br />
         <button onClick={() => startTranscription()}>
           Start Transcription
         </button>
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
+        <br />
+        <button onClick={() => startRemoteMedia()}>Start Remote Media</button>
+        <button onClick={() => stopRemoteMedia()}>Stop Remote Media</button>
+        <button onClick={() => handleStartRecording()}>Start Recording</button>
+        <button onClick={() => handleStopRecording()}>Stop Recording</button>
+        <button onClick={() => handleUpdateRecording()}>
+          Update Recording
+        </button>
+        <input type="text" value={videoUrl} onChange={handleVideoUrlChange} />
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
@@ -447,6 +518,9 @@ export default function App() {
           automirror
           sessionId={screen.session_id}
         />
+      ))}
+      {participantIds.map((id) => (
+        <DailyVideo type="rmpVideo" key={id} automirror sessionId={id} />
       ))}
       {participantIds.map((id) => (
         // @ts-expect-error This works just fine but gives a typescript error
