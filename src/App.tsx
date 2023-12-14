@@ -1,8 +1,5 @@
 import React, { useCallback, useState } from "react";
-import Daily, {
-  DailyEventObject,
-  DailyEventObjectParticipant,
-} from "@daily-co/daily-js";
+import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -14,6 +11,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useTranscription,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -27,6 +25,13 @@ export default function App() {
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
   const participantIds = useParticipantIds();
+
+  const { isTranscriptionEnabled, startTranscription, transcriptions } =
+    useTranscription();
+
+  if (isTranscriptionEnabled) {
+    console.log(transcriptions);
+  }
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -310,6 +315,9 @@ export default function App() {
         <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
+        <button onClick={() => startTranscription()}>
+          Start Transcription
+        </button>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
