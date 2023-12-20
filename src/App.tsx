@@ -11,6 +11,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useMeetingSessionState,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -26,6 +27,13 @@ export default function App() {
   const logEvent = useCallback((evt: DailyEventObject) => {
     console.log("logEvent: " + evt.action, evt);
   }, []);
+
+  const { data } = useMeetingSessionState({
+    onError: (err) => console.log("--- useMeetingSessioState Error: ", err),
+  });
+
+  console.log(data);
+
   const participantIds = useParticipantIds({
     onParticipantJoined(ev) {
       logEvent(ev);
@@ -272,6 +280,20 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
+        <button
+          onClick={() => {
+            callObject?.setMeetingSessionData({ state: "preShow" });
+          }}
+        >
+          Pre Show
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setMeetingSessionData({ state: "postShow" });
+          }}
+        >
+          Post Show
+        </button>
         <br />
         <hr />
         <br />
