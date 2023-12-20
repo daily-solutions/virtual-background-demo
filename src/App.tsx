@@ -115,7 +115,13 @@ export default function App() {
           ].reduce((participantIds, key) => {
             return {
               ...participantIds,
-              [key]: { setAudio: true, setVideo: true },
+              [key]: {
+                setSubscribedTracks: {
+                  audio: true,
+                  video: true,
+                  screenVideo: true,
+                },
+              },
             };
           }, {});
 
@@ -125,7 +131,13 @@ export default function App() {
             (participantIds, key) => {
               return {
                 ...participantIds,
-                [key]: { setAudio: false, setVideo: true },
+                [key]: {
+                  setSubscribedTracks: {
+                    audio: false,
+                    video: true,
+                    screenVideo: true,
+                  },
+                },
               };
             },
             {}
@@ -140,9 +152,17 @@ export default function App() {
         const showTimeList = allParticipantIds.reduce((participantIds, key) => {
           return {
             ...participantIds,
-            [key]: { setAudio: false, setVideo: false }, // or any default value you want to assign
+            [key]: {
+              setSubscribedTracks: {
+                audio: false,
+                video: false,
+                screenVideo: false,
+              },
+            }, // or any default value you want to assign
           };
         }, {});
+
+        console.log(showTimeList);
         callObject?.updateParticipants(showTimeList);
         break;
     }
