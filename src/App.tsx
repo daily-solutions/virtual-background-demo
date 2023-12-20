@@ -82,13 +82,13 @@ export default function App() {
 
   const localParticipant = useLocalParticipant();
   console.log("localParticipant: ", localParticipant);
+  const userData = localParticipant?.userData as { role?: string };
 
   if (localParticipant) {
     switch (data.state) {
       case "PRE-SHOW":
       case "POST-SHOW":
         console.log("POST-SHOW or PRE-SHOW");
-        const userData = localParticipant?.userData as { role?: string };
 
         if (userData?.role === "participant") {
           const subscribeList = [
@@ -143,12 +143,7 @@ export default function App() {
             [key]: { setAudio: false, setVideo: false }, // or any default value you want to assign
           };
         }, {});
-
-        if (
-          (localParticipant?.userData as { role?: string })?.role === "guest"
-        ) {
-          callObject?.updateParticipants(showTimeList);
-        }
+        callObject?.updateParticipants(showTimeList);
         break;
     }
   }
