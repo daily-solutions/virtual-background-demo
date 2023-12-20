@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from "react";
-import Daily, { DailyEventObject } from "@daily-co/daily-js";
+import React, { useCallback, useEffect, useState } from "react";
+import Daily, { DailyEventObject, DailyParticipant } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -13,6 +13,10 @@ import {
   useNetwork,
   useMeetingSessionState,
   useLocalParticipant,
+  ExtendedDailyParticipant,
+  useLocalSessionId,
+  useParticipant,
+  useParticipantProperty,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -39,116 +43,90 @@ export default function App() {
   const allParticipantIds = useParticipantIds({
     onParticipantJoined(ev) {
       logEvent(ev);
-    },
-    onParticipantLeft(ev) {
-      logEvent(ev);
-      callObject?.updateParticipant(ev.participant.session_id, {
-        setSubscribedTracks: { video: false, audio: false },
-      });
-    },
-    onParticipantUpdated(ev) {
-      logEvent(ev);
       callObject?.updateParticipant(ev.participant.session_id, {
         setSubscribedTracks: { video: true, audio: true },
       });
     },
+    onParticipantLeft(ev) {
+      logEvent(ev);
+    },
+    onParticipantUpdated(ev) {
+      logEvent(ev);
+    },
   });
 
   const producerParticipantIds = useParticipantIds({
-    filter: (participant) => {
+    filter: useCallback((participant: ExtendedDailyParticipant) => {
       return (participant.userData as { role?: string })?.role === "producer";
-    },
+    }, []),
   });
 
   const moderatorParticipantIds = useParticipantIds({
-    filter: (participant) => {
+    filter: useCallback((participant: ExtendedDailyParticipant) => {
       return (participant.userData as { role?: string })?.role === "moderator";
-    },
+    }, []),
   });
 
   const guestParticipantIds = useParticipantIds({
-    filter: (participant) => {
+    filter: useCallback((participant: ExtendedDailyParticipant) => {
       return (participant.userData as { role?: string })?.role === "guest";
-    },
+    }, []),
   });
 
   const participantParticipantIds = useParticipantIds({
-    filter: (participant) => {
+    filter: useCallback((participant: ExtendedDailyParticipant) => {
       return (
         (participant.userData as { role?: string })?.role === "participant"
       );
-    },
+    }, []),
   });
 
-  const localParticipant = useLocalParticipant();
-  console.log("localParticipant: ", localParticipant);
-  const userData = localParticipant?.userData as { role?: string };
+  const localSessionId = useLocalSessionId();
 
-  if (localParticipant) {
+  const userData = useParticipantProperty(localSessionId, "userData") as {
+    role?: string;
+  };
+
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed()) return;
+
     switch (data.state) {
       case "PRE-SHOW":
       case "POST-SHOW":
         console.log("POST-SHOW or PRE-SHOW");
 
-        if (userData?.role === "participant") {
-          const subscribeList = [
-            ...guestParticipantIds,
-            ...moderatorParticipantIds,
-            ...producerParticipantIds,
-            ...participantParticipantIds,
-          ].reduce((participantIds, key) => {
-            return {
-              ...participantIds,
-              [key]: { setAudio: false, setVideo: true },
-            };
-          }, {});
+        const subscribeList = [
+          ...guestParticipantIds,
+          ...moderatorParticipantIds,
+          ...producerParticipantIds,
+          ...participantParticipantIds,
+        ].reduce((participantIds, key) => {
+          if (userData?.role === "producer") {
+            return participantIds;
+          }
+          return {
+            ...participantIds,
+            [key]: {
+              setSubscribedTracks: {
+                audio:
+                  !participantParticipantIds.includes(key) &&
+                  userData?.role !== "participant",
+                video: true,
+                screenVideo: true,
+              },
+            },
+          };
+        }, {});
 
-          callObject?.updateParticipants(subscribeList);
+        if (userData?.role === "participant") {
           callObject?.setLocalAudio(false);
         }
 
-        if (userData?.role === "moderator" || userData?.role === "guest") {
-          const subscribeList = [
-            ...guestParticipantIds,
-            ...moderatorParticipantIds,
-            ...producerParticipantIds,
-          ].reduce((participantIds, key) => {
-            return {
-              ...participantIds,
-              [key]: {
-                setSubscribedTracks: {
-                  audio: true,
-                  video: true,
-                  screenVideo: true,
-                },
-              },
-            };
-          }, {});
-
-          callObject?.updateParticipants(subscribeList);
-
-          const otherList = participantParticipantIds.reduce(
-            (participantIds, key) => {
-              return {
-                ...participantIds,
-                [key]: {
-                  setSubscribedTracks: {
-                    audio: false,
-                    video: true,
-                    screenVideo: true,
-                  },
-                },
-              };
-            },
-            {}
-          );
-          callObject?.updateParticipants(otherList);
-        }
+        callObject?.updateParticipants(subscribeList);
 
         break;
       case "SHOW-TIME":
         console.log("SHOW-TIME");
-
         const showTimeList = allParticipantIds.reduce((participantIds, key) => {
           return {
             ...participantIds,
@@ -162,11 +140,10 @@ export default function App() {
           };
         }, {});
 
-        console.log(showTimeList);
         callObject?.updateParticipants(showTimeList);
         break;
     }
-  }
+  }, [data.state, callObject, allParticipantIds, userData?.role]);
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
