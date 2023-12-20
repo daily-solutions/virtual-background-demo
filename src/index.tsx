@@ -8,7 +8,10 @@ const container = document.getElementById("root");
 const root = createRoot(container!);
 root.render(
   <StrictMode>
-    <DailyProvider dailyConfig={{ useDevicePreferenceCookies: true }}>
+    <DailyProvider
+      dailyConfig={{ useDevicePreferenceCookies: true }}
+      subscribeToTracksAutomatically={false}
+    >
       <App />
     </DailyProvider>
   </StrictMode>
