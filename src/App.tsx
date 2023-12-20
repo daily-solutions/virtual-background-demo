@@ -12,6 +12,7 @@ import {
   useInputSettings,
   useNetwork,
   useMeetingSessionState,
+  useLocalParticipant,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -24,20 +25,20 @@ export default function App() {
   const callObject = useDaily();
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
+
   const logEvent = useCallback((evt: DailyEventObject) => {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
-  const { data } = useMeetingSessionState({
+  const { data = { state: "PRE-SHOW" } } = useMeetingSessionState<{
+    state: "PRE-SHOW" | "SHOW-TIME" | "POST-SHOW";
+  }>({
     onError: (err) => console.log("--- useMeetingSessioState Error: ", err),
   });
 
-  console.log(data);
-
-  const participantIds = useParticipantIds({
+  const allParticipantIds = useParticipantIds({
     onParticipantJoined(ev) {
       logEvent(ev);
-      callObject?.setUserData({ isGuest: true });
     },
     onParticipantLeft(ev) {
       logEvent(ev);
@@ -47,23 +48,110 @@ export default function App() {
     },
     onParticipantUpdated(ev) {
       logEvent(ev);
-      const {
-        participant: { userData = {} },
-      } = ev;
-
-      if (
-        typeof userData === "object" &&
-        userData !== null &&
-        "isGuest" in userData &&
-        typeof userData.isGuest === "boolean" &&
-        userData.isGuest
-      ) {
-        callObject?.updateParticipant(ev.participant.session_id, {
-          setSubscribedTracks: { video: true, audio: true },
-        });
-      }
+      callObject?.updateParticipant(ev.participant.session_id, {
+        setSubscribedTracks: { video: true, audio: true },
+      });
     },
   });
+
+  const producerParticipantIds = useParticipantIds({
+    filter: (participant) => {
+      return (participant.userData as { role?: string })?.role === "producer";
+    },
+  });
+
+  const moderatorParticipantIds = useParticipantIds({
+    filter: (participant) => {
+      return (participant.userData as { role?: string })?.role === "moderator";
+    },
+  });
+
+  const guestParticipantIds = useParticipantIds({
+    filter: (participant) => {
+      return (participant.userData as { role?: string })?.role === "guest";
+    },
+  });
+
+  const participantParticipantIds = useParticipantIds({
+    filter: (participant) => {
+      return (
+        (participant.userData as { role?: string })?.role === "participant"
+      );
+    },
+  });
+
+  const localParticipant = useLocalParticipant();
+  console.log("localParticipant: ", localParticipant);
+
+  if (localParticipant) {
+    switch (data.state) {
+      case "PRE-SHOW":
+      case "POST-SHOW":
+        console.log("POST-SHOW or PRE-SHOW");
+        const userData = localParticipant?.userData as { role?: string };
+
+        if (userData?.role === "participant") {
+          const subscribeList = [
+            ...guestParticipantIds,
+            ...moderatorParticipantIds,
+            ...producerParticipantIds,
+            ...participantParticipantIds,
+          ].reduce((participantIds, key) => {
+            return {
+              ...participantIds,
+              [key]: { setAudio: false, setVideo: true },
+            };
+          }, {});
+
+          callObject?.updateParticipants(subscribeList);
+          callObject?.setLocalAudio(false);
+        }
+
+        if (userData?.role === "moderator" || userData?.role === "guest") {
+          const subscribeList = [
+            ...guestParticipantIds,
+            ...moderatorParticipantIds,
+            ...producerParticipantIds,
+          ].reduce((participantIds, key) => {
+            return {
+              ...participantIds,
+              [key]: { setAudio: true, setVideo: true },
+            };
+          }, {});
+
+          callObject?.updateParticipants(subscribeList);
+
+          const otherList = participantParticipantIds.reduce(
+            (participantIds, key) => {
+              return {
+                ...participantIds,
+                [key]: { setAudio: false, setVideo: true },
+              };
+            },
+            {}
+          );
+          callObject?.updateParticipants(otherList);
+        }
+
+        break;
+      case "SHOW-TIME":
+        console.log("SHOW-TIME");
+
+        const showTimeList = allParticipantIds.reduce((participantIds, key) => {
+          return {
+            ...participantIds,
+            [key]: { setAudio: false, setVideo: false }, // or any default value you want to assign
+          };
+        }, {});
+
+        if (
+          (localParticipant?.userData as { role?: string })?.role === "guest"
+        ) {
+          callObject?.updateParticipants(showTimeList);
+        }
+        break;
+    }
+  }
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -282,17 +370,52 @@ export default function App() {
         <button onClick={() => leaveRoom()}>Leave call</button>
         <button
           onClick={() => {
-            callObject?.setMeetingSessionData({ state: "preShow" });
+            callObject?.setMeetingSessionData({ state: "PRE-SHOW" });
           }}
         >
           Pre Show
         </button>
         <button
           onClick={() => {
-            callObject?.setMeetingSessionData({ state: "postShow" });
+            callObject?.setMeetingSessionData({ state: "POST-SHOW" });
           }}
         >
           Post Show
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setMeetingSessionData({ state: "SHOW-TIME" });
+          }}
+        >
+          Show Time
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setUserData({ role: "guest" });
+          }}
+        >
+          Guest Role
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setUserData({ role: "producer" });
+          }}
+        >
+          Producer Role
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setUserData({ role: "moderator" });
+          }}
+        >
+          Moderator Role
+        </button>
+        <button
+          onClick={() => {
+            callObject?.setUserData({ role: "participant" });
+          }}
+        >
+          Participant Role
         </button>
         <br />
         <hr />
@@ -358,7 +481,7 @@ export default function App() {
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
         <br />
       </div>
-      {participantIds.map((id) => (
+      {allParticipantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
       {/* {screens.map((screen) => (
