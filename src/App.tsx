@@ -1,8 +1,5 @@
 import React, { useCallback, useState } from "react";
-import Daily, {
-  DailyEventObject,
-  DailyEventObjectParticipant,
-} from "@daily-co/daily-js";
+import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -26,7 +23,39 @@ export default function App() {
   const callObject = useDaily();
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
-  const participantIds = useParticipantIds();
+  const logEvent = useCallback((evt: DailyEventObject) => {
+    console.log("logEvent: " + evt.action, evt);
+  }, []);
+  const participantIds = useParticipantIds({
+    onParticipantJoined(ev) {
+      logEvent(ev);
+      callObject?.setUserData({ isGuest: true });
+    },
+    onParticipantLeft(ev) {
+      logEvent(ev);
+      callObject?.updateParticipant(ev.participant.session_id, {
+        setSubscribedTracks: { video: false, audio: false },
+      });
+    },
+    onParticipantUpdated(ev) {
+      logEvent(ev);
+      const {
+        participant: { userData = {} },
+      } = ev;
+
+      if (
+        typeof userData === "object" &&
+        userData !== null &&
+        "isGuest" in userData &&
+        typeof userData.isGuest === "boolean" &&
+        userData.isGuest
+      ) {
+        callObject?.updateParticipant(ev.participant.session_id, {
+          setSubscribedTracks: { video: true, audio: true },
+        });
+      }
+    },
+  });
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -55,14 +84,10 @@ export default function App() {
 
   const { startScreenShare, stopScreenShare, screens } = useScreenShare();
 
-  const logEvent = useCallback((evt: DailyEventObject) => {
-    console.log("logEvent: " + evt.action, evt);
-  }, []);
-
   useDailyEvent("participant-joined", logEvent);
   useDailyEvent("joining-meeting", logEvent);
   useDailyEvent("joined-meeting", logEvent);
-  useDailyEvent("participant-updated", logEvent);
+  // useDailyEvent("participant-updated", logEvent);
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
@@ -72,7 +97,7 @@ export default function App() {
   useDailyEvent("load-attempt-failed", logEvent);
   useDailyEvent("receive-settings-updated", logEvent);
   useDailyEvent("left-meeting", logEvent);
-  useDailyEvent("participant-left", logEvent);
+  // useDailyEvent("participant-left", logEvent);
   useDailyEvent("network-connection", logEvent);
 
   // useDailyEvent("network-quality-change", logEvent);
@@ -222,7 +247,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
 
   return (
     <>
