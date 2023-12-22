@@ -1,8 +1,5 @@
 import React, { useCallback, useState } from "react";
-import Daily, {
-  DailyEventObject,
-  DailyEventObjectParticipant,
-} from "@daily-co/daily-js";
+import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -314,14 +311,14 @@ export default function App() {
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
       ))}
-      {/* {screens.map((screen) => (
+      {screens.map((screen) => (
         <DailyVideo
           type="screenVideo"
           key={screen.screenId}
           automirror
           sessionId={screen.session_id}
         />
-      ))} */}
+      ))}
       <DailyAudio />
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
