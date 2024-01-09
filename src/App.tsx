@@ -61,12 +61,20 @@ export default function App() {
     startRecording,
     stopRecording,
     error: recordingError,
+    isRecording,
+    recordingStartedDate,
   } = useRecording({
     onRecordingData: logEvent,
     onRecordingError: logEvent,
     onRecordingStarted: logEvent,
     onRecordingStopped: logEvent,
   });
+  if (isRecording) {
+    console.log("Recording is happening", {
+      isRecording,
+      recordingStartedDate,
+    });
+  }
   if (recordingError) {
     console.log("recording error", recordingError);
   }
