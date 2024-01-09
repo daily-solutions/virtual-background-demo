@@ -11,6 +11,7 @@ import {
   DailyAudio,
   useInputSettings,
   useNetwork,
+  useRecording,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -55,6 +56,20 @@ export default function App() {
   const logEvent = useCallback((evt: DailyEventObject) => {
     console.log("logEvent: " + evt.action, evt);
   }, []);
+
+  const {
+    startRecording,
+    stopRecording,
+    error: recordingError,
+  } = useRecording({
+    onRecordingData: logEvent,
+    onRecordingError: logEvent,
+    onRecordingStarted: logEvent,
+    onRecordingStopped: logEvent,
+  });
+  if (recordingError) {
+    console.log("recording error", recordingError);
+  }
 
   useDailyEvent("participant-joined", logEvent);
   useDailyEvent("joining-meeting", logEvent);
@@ -219,7 +234,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
 
   return (
     <>
@@ -306,6 +321,8 @@ export default function App() {
         <br />
         <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
+        <button onClick={() => startRecording()}>Start Recording</button>
+        <button onClick={() => stopRecording()}>Stop Recording</button>
         <br />
       </div>
       {participantIds.map((id) => (

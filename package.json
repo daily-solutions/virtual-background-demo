@@ -2,6 +2,7 @@
   "name": "cra-virtual-background",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"
@@ -12,14 +13,14 @@
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
-    "@vitejs/plugin-react-swc": "^3.3.2",
+    "@vitejs/plugin-react-swc": "^3.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recoil": "^0.7.7",
     "typescript": "^4.9.5",
-    "vite": "^4.4.9",
-    "vite-plugin-svgr": "^3.2.0",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite": "^5.0.10",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-tsconfig-paths": "^4.2.3"
   },
   "scripts": {
     "dev": "vite --host",
@@ -48,6 +49,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "eslint": "^8.56.0",
     "eslint-config-react-app": "^7.0.1",
-    "vite-plugin-eslint": "^1.8.1"
+    "vite-plugin-eslint": "^1.8.1",
+    "vite-plugin-mkcert": "^1.17.1"
   }
 }
