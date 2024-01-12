@@ -30,8 +30,6 @@ export default function App() {
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
 
-  const network = useNetwork();
-
   const {
     cameras,
     setCamera,
@@ -57,27 +55,17 @@ export default function App() {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
-  const {
-    startRecording,
-    stopRecording,
-    error: recordingError,
-    isRecording,
-    recordingStartedDate,
-  } = useRecording({
+  const network = useNetwork({
+    onNetworkConnection: logEvent,
+    onNetworkQualityChange: logEvent,
+  });
+
+  const { startRecording, stopRecording } = useRecording({
     onRecordingData: logEvent,
     onRecordingError: logEvent,
     onRecordingStarted: logEvent,
     onRecordingStopped: logEvent,
   });
-  if (isRecording) {
-    console.log("Recording is happening", {
-      isRecording,
-      recordingStartedDate,
-    });
-  }
-  if (recordingError) {
-    console.log("recording error", recordingError);
-  }
 
   useDailyEvent("participant-joined", logEvent);
   useDailyEvent("joining-meeting", logEvent);
@@ -93,9 +81,7 @@ export default function App() {
   useDailyEvent("receive-settings-updated", logEvent);
   useDailyEvent("left-meeting", logEvent);
   useDailyEvent("participant-left", logEvent);
-  useDailyEvent("network-connection", logEvent);
 
-  // useDailyEvent("network-quality-change", logEvent);
   useDailyEvent("camera-error", logEvent);
   useDailyEvent("error", (evt) => logEvent);
 
