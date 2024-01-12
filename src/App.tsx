@@ -242,7 +242,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
 
   return (
     <>
