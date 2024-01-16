@@ -107,6 +107,27 @@ export default function App() {
     });
   }
 
+  function generateRandomString() {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < 5; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+  function setRandomUsername() {
+    if (!callObject) {
+      return;
+    }
+    const randomUsername = generateRandomString(); // Generate a random string of length 10
+    callObject.setUserName(randomUsername)
+      .catch((err) => {
+        console.error("Error setting username:", err);
+      });
+  }
+
   function enableBackground() {
     if (!callObject || enableBackgroundClicked) {
       return;
@@ -248,9 +269,6 @@ export default function App() {
             ? dailyRoomUrl
             : "Please enter a room url (e.g. https://example.daily.co/room)"}
         </p>
-        <button onClick={() => load()}>Load</button> <br />
-        <button onClick={() => preAuth()}>Preauth</button> <br />
-        <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
@@ -300,23 +318,12 @@ export default function App() {
         </select>
         <br />
         <br />
-        <button disabled={enableBlurClicked} onClick={() => enableBlur()}>
-          Enable Blur
-        </button>
-        <button
-          disabled={enableBackgroundClicked}
-          onClick={() => enableBackground()}
-        >
-          Enable Background
-        </button>
         <br />
-        <button onClick={() => startScreenShare()}>Start Screen Share</button>
-        <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
         <br />
         <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
-        <button onClick={() => startRecording()}>Start Recording</button>
-        <button onClick={() => stopRecording()}>Stop Recording</button>
+        <button onClick={() => setRandomUsername()}>Set Random Username</button>
+
         <br />
       </div>
       {participantIds.map((id) => (
@@ -331,6 +338,7 @@ export default function App() {
         />
       ))}
       <DailyAudio />
+      <div>Username: {callObject?.participants().local ? callObject?.participants().local.user_name : 'Not joined'}</div>
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
