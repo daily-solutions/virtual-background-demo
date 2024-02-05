@@ -12,6 +12,7 @@ import {
   useInputSettings,
   useNetwork,
   useRecording,
+  useTranscription,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -140,8 +141,8 @@ export default function App() {
 
     callObject
       .join({
-        // Replace with your own room url
         url: dailyRoomUrl,
+        token: dailyMeetingToken,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -229,6 +230,14 @@ export default function App() {
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
   const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyMeetingToken, setDailyMeetingToken] = useState("");
+
+  const { startTranscription, stopTranscription } = useTranscription({
+    onTranscriptionAppData: logEvent,
+    onTranscriptionError: logEvent,
+    onTranscriptionStarted: logEvent,
+    onTranscriptionStopped: logEvent,
+  });
 
   return (
     <>
@@ -248,6 +257,16 @@ export default function App() {
             ? dailyRoomUrl
             : "Please enter a room url (e.g. https://example.daily.co/room)"}
         </p>
+        2. Use a meeting token (optional).
+        <br />
+        <input
+          type="text"
+          value={dailyMeetingToken}
+          onChange={(event) => {
+            setDailyMeetingToken(event.target.value);
+          }}
+        />
+        <br />
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
@@ -318,6 +337,10 @@ export default function App() {
         <button onClick={() => startRecording()}>Start Recording</button>
         <button onClick={() => stopRecording()}>Stop Recording</button>
         <br />
+        <button onClick={() => startTranscription()}>
+          Start Transcription
+        </button>
+        <button onClick={() => stopTranscription()}>Stop Transcription</button>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
