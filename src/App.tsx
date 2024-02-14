@@ -1,17 +1,21 @@
 import React, { useCallback, useState } from "react";
-import Daily, { DailyEventObject } from "@daily-co/daily-js";
+import Daily, {
+  DailyEventObject,
+  // DailyEventObjectNetworkQualityEvent,
+} from "@daily-co/daily-js";
 
 import {
-  useDaily,
-  useDevices,
-  useDailyEvent,
-  useScreenShare,
-  DailyVideo,
-  useParticipantIds,
   DailyAudio,
+  DailyVideo,
+  useDaily,
+  useDailyEvent,
+  useDevices,
   useInputSettings,
   useNetwork,
+  useParticipantIds,
   useRecording,
+  useScreenShare,
+  useSendSettings,
   useTranscription,
 } from "@daily-co/daily-react";
 
@@ -56,9 +60,38 @@ export default function App() {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
+  const { updateSendSettings } = useSendSettings({
+    onSendSettingsUpdated: logEvent,
+  });
+
+  // const onNetworkQualityChange = useCallback(
+  //   (evt: DailyEventObjectNetworkQualityEvent) => {
+  //     switch (evt.threshold) {
+  //       case "very-low":
+  //         updateSendSettings({
+  //           video: { maxQuality: "low" },
+  //         });
+  //         break;
+  //       case "low":
+  //         updateSendSettings({
+  //           video: "bandwidth-and-quality-balanced",
+  //         });
+  //         break;
+  //       case "good":
+  //         updateSendSettings({
+  //           video: "quality-optimized",
+  //         });
+  //         break;
+  //       default:
+  //         console.log("Network quality is unknown");
+  //     }
+  //   },
+  //   [updateSendSettings]
+  // );
+
   const network = useNetwork({
     onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
+    // onNetworkQualityChange,
   });
 
   const { startRecording, stopRecording } = useRecording({
@@ -341,6 +374,24 @@ export default function App() {
           Start Transcription
         </button>
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
+        <button
+          onClick={() => {
+            updateSendSettings({
+              video: "bandwidth-optimized",
+            });
+          }}
+        >
+          Bandwidth Optimized
+        </button>
+        <button
+          onClick={() => {
+            updateSendSettings({
+              video: "quality-optimized",
+            });
+          }}
+        >
+          Quality Optimized
+        </button>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
