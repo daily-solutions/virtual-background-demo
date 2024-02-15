@@ -13,6 +13,8 @@ import {
   useNetwork,
   useRecording,
   useTranscription,
+  useVideoTrack,
+  useLocalSessionId,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -220,6 +222,40 @@ export default function App() {
     callObject.setLocalVideo(true);
   };
 
+  const localSessionId = useLocalSessionId();
+
+  const localVideoTrack = useVideoTrack(localSessionId);
+
+  function startTestPeerToPeerCallQuality() {
+    console.log(
+      "startTestPeerToPeerCallQuality localVideoTrack",
+      localVideoTrack?.persistentTrack
+    );
+    if (!callObject || !localVideoTrack.persistentTrack) {
+      return;
+    }
+
+    callObject
+      .testPeerToPeerCallQuality({
+        videoTrack: localVideoTrack.persistentTrack,
+        duration: 15,
+      })
+      .then((res) => {
+        console.log("testPeerToPeerCallQuality: ", res);
+      })
+      .catch((err) => {
+        console.error("Error starting testPeerToPeerCallQuality:", err);
+      });
+  }
+
+  function stopTestPeerToPeerCallQuality() {
+    if (!callObject) {
+      return;
+    }
+
+    callObject.stopTestPeerToPeerCallQuality();
+  }
+
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
   const currentSpeaker = speakers.find((s) => s.selected);
@@ -272,6 +308,12 @@ export default function App() {
         <button onClick={() => startCamera()}>Start Camera</button> <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
+        <button onClick={() => startTestPeerToPeerCallQuality()}>
+          Start test p2p quality
+        </button>
+        <button onClick={() => stopTestPeerToPeerCallQuality()}>
+          Stop test p2p quality
+        </button>
         <br />
         <hr />
         <br />
