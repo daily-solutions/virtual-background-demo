@@ -139,6 +139,8 @@ export default function App() {
       alert("Please enter a room url (e.g. https://example.daily.co/room)");
     }
 
+    callObject.setLocalVideo(false);
+
     callObject
       .join({
         url: dailyRoomUrl,
