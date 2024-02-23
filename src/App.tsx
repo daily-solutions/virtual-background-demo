@@ -57,8 +57,8 @@ export default function App() {
   }, []);
 
   const network = useNetwork({
-    onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
+    // onNetworkConnection: logEvent,
+    //onNetworkQualityChange: logEvent,
   });
 
   const { startRecording, stopRecording } = useRecording({
@@ -143,6 +143,7 @@ export default function App() {
       .join({
         url: dailyRoomUrl,
         token: dailyMeetingToken,
+        startVideoOff: true,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
