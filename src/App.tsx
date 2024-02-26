@@ -13,6 +13,7 @@ import {
   useNetwork,
   useRecording,
   useTranscription,
+  useMeetingState,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -38,6 +39,7 @@ export default function App() {
     setMicrophone,
     speakers,
     setSpeaker,
+    camState,
   } = useDevices();
 
   const { errorMsg, updateInputSettings } = useInputSettings({
@@ -139,7 +141,7 @@ export default function App() {
       alert("Please enter a room url (e.g. https://example.daily.co/room)");
     }
 
-    callObject.setLocalVideo(false);
+    // callObject.setLocalVideo(false);
 
     callObject
       .join({
@@ -158,9 +160,20 @@ export default function App() {
       return;
     }
 
-    callObject.startCamera().then((res) => {
-      console.log("startCamera: ", res);
-    });
+    callObject
+      .startCamera({
+        dailyConfig: {
+          alwaysIncludeMicInPermissionPrompt: false,
+        },
+      })
+      .then((res) => {
+        console.log("startCamera: ", res);
+
+        // Comment these three lines out to see the difference
+        if (camState === "granted") {
+          callObject.setLocalVideo(true);
+        }
+      });
   };
 
   const load = () => {
@@ -168,7 +181,7 @@ export default function App() {
       return;
     }
     callObject.load({
-      url: `https://${dailyRoomUrl}`,
+      url: dailyRoomUrl,
     });
   };
 
@@ -177,7 +190,7 @@ export default function App() {
       return;
     }
     callObject.preAuth({
-      url: `https://${dailyRoomUrl}`,
+      url: dailyRoomUrl,
     });
   };
 
@@ -232,7 +245,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const { startTranscription, stopTranscription } = useTranscription({
@@ -241,6 +254,8 @@ export default function App() {
     onTranscriptionStarted: logEvent,
     onTranscriptionStopped: logEvent,
   });
+
+  const meetingState = useMeetingState();
 
   return (
     <>
@@ -357,7 +372,8 @@ export default function App() {
         />
       ))}
       <DailyAudio />
-      <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
+      <div id="meetingState">Meeting State: {meetingState}</div>
+      <div id="cameraState">Camera State: {camState}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
