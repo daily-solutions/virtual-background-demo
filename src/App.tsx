@@ -14,6 +14,8 @@ import {
   useRecording,
   useTranscription,
   useMeetingState,
+  useMediaTrack,
+  useLocalSessionId,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -257,6 +259,9 @@ export default function App() {
 
   const meetingState = useMeetingState();
 
+  const localId = useLocalSessionId();
+  const mediaTrack = useMediaTrack(localId, "video");
+
   return (
     <>
       <div className="App">
@@ -374,6 +379,7 @@ export default function App() {
       <DailyAudio />
       <div id="meetingState">Meeting State: {meetingState}</div>
       <div id="cameraState">Camera State: {camState}</div>
+      <div id="mediaState">Media Track State: {JSON.stringify(mediaTrack)}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
