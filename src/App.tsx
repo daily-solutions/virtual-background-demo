@@ -229,7 +229,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const { startTranscription, stopTranscription } = useTranscription({
@@ -241,7 +241,7 @@ export default function App() {
 
   return (
     <>
-      <div className="App">
+      <div id="player" className="App">
         <br />
         1. Join the call
         <br />
@@ -341,10 +341,10 @@ export default function App() {
           Start Transcription
         </button>
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
+        {participantIds.map((id) => (
+          <DailyVideo type="video" key={id} automirror sessionId={id} />
+        ))}
       </div>
-      {participantIds.map((id) => (
-        <DailyVideo type="video" key={id} automirror sessionId={id} />
-      ))}
       {screens.map((screen) => (
         <DailyVideo
           type="screenVideo"
@@ -359,6 +359,27 @@ export default function App() {
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
       <div id="participantCount">Participant Counts: {participantCounts}</div>
       <div>Network quality: {network.quality}</div>
+
+      <button
+        id="pipButton"
+        onClick={async () => {
+          const player = document.querySelector("#player");
+
+          if ("documentPictureInPicture" in window === false) {
+            return;
+          }
+
+          // Open a Picture-in-Picture window.
+          const pipWindow = await (
+            window as any
+          ).documentPictureInPicture.requestWindow();
+
+          // Move the player to the Picture-in-Picture window.
+          pipWindow.document.body.append(player);
+        }}
+      >
+        Open Picture-in-Picture window
+      </button>
     </>
   );
 }
