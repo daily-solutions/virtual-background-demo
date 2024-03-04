@@ -13,6 +13,8 @@ import {
   useNetwork,
   useRecording,
   useTranscription,
+  useLocalSessionId,
+  useParticipantProperty,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -56,10 +58,12 @@ export default function App() {
     console.log("logEvent: " + evt.action, evt);
   }, []);
 
-  const network = useNetwork({
-    onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
-  });
+  // const network = useNetwork({
+  //   onNetworkConnection: logEvent,
+  //   onNetworkQualityChange: logEvent,
+  // });
+
+  const network = useNetwork();
 
   const { startRecording, stopRecording } = useRecording({
     onRecordingData: logEvent,
@@ -68,7 +72,27 @@ export default function App() {
     onRecordingStopped: logEvent,
   });
 
-  useDailyEvent("participant-joined", logEvent);
+  const localParticipant = useLocalSessionId();
+  const localParticipantJoinedAt = useParticipantProperty(
+    localParticipant,
+    "joined_at"
+  );
+
+  const onParticipantJoined = useCallback(
+    (evt: DailyEventObject<"participant-joined">) => {
+      if (!evt || !localParticipantJoinedAt) return;
+
+      const { local, joined_at } = evt.participant;
+
+      if (!local && joined_at && joined_at > localParticipantJoinedAt) {
+        // This is a remote participant
+        console.log("========= Remote participant joined", evt.participant);
+      }
+    },
+    [localParticipantJoinedAt]
+  );
+
+  useDailyEvent("participant-joined", onParticipantJoined);
   useDailyEvent("joining-meeting", logEvent);
   useDailyEvent("joined-meeting", logEvent);
   useDailyEvent("participant-updated", logEvent);
