@@ -155,9 +155,13 @@ export default function App() {
       return;
     }
 
-    callObject.startCamera().then((res) => {
-      console.log("startCamera: ", res);
-    });
+    callObject
+      .startCamera({
+        startAudioOff: true,
+      })
+      .then((res) => {
+        console.log("startCamera: ", res);
+      });
   };
 
   const load = () => {
