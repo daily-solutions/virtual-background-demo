@@ -9,7 +9,13 @@ const root = createRoot(container!);
 
 root.render(
   <StrictMode>
-    <DailyProvider dailyConfig={{ useDevicePreferenceCookies: true }}>
+    <DailyProvider
+      dailyConfig={{
+        useDevicePreferenceCookies: true,
+        alwaysIncludeCamInPermissionPrompt: false,
+        alwaysIncludeMicInPermissionPrompt: false,
+      }}
+    >
       <App />
     </DailyProvider>
   </StrictMode>

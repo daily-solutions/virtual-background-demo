@@ -143,6 +143,8 @@ export default function App() {
       .join({
         url: dailyRoomUrl,
         token: dailyMeetingToken,
+        startAudioOff: true,
+        startVideoOff: true,
       })
       .catch((err) => {
         console.error("Error joining room:", err);
@@ -155,9 +157,15 @@ export default function App() {
       return;
     }
 
-    callObject.startCamera().then((res) => {
-      console.log("startCamera: ", res);
-    });
+    callObject.setLocalVideo(true);
+  };
+
+  const startMic = () => {
+    if (!callObject) {
+      return;
+    }
+
+    callObject.setLocalAudio(true);
   };
 
   const load = () => {
@@ -229,7 +237,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const { startTranscription, stopTranscription } = useTranscription({
@@ -270,6 +278,7 @@ export default function App() {
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
+        <button onClick={() => startMic()}>Start Microphone</button> <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
