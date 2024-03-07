@@ -237,7 +237,7 @@ export default function App() {
 
   const participantCounts = hiddenParticipantCount + presentParticipantCount;
 
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const { startTranscription, stopTranscription } = useTranscription({
