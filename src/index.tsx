@@ -12,7 +12,7 @@ root.render(
     <DailyProvider
       dailyConfig={{
         useDevicePreferenceCookies: true,
-        alwaysIncludeCamInPermissionPrompt: true,
+        alwaysIncludeCamInPermissionPrompt: false,
         alwaysIncludeMicInPermissionPrompt: false,
       }}
     >
