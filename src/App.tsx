@@ -13,6 +13,7 @@ import {
   useNetwork,
   useRecording,
   useTranscription,
+  useParticipantCounts,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -30,6 +31,8 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
     cameras,
@@ -55,6 +58,13 @@ export default function App() {
   const logEvent = useCallback((evt: DailyEventObject) => {
     console.log("logEvent: " + evt.action, evt);
   }, []);
+
+  const { startTranscription, stopTranscription } = useTranscription({
+    onTranscriptionAppData: logEvent,
+    onTranscriptionError: logEvent,
+    onTranscriptionStarted: logEvent,
+    onTranscriptionStopped: logEvent,
+  });
 
   const network = useNetwork({
     onNetworkConnection: logEvent,
@@ -90,7 +100,7 @@ export default function App() {
   useDailyEvent("input-settings-updated", logEvent);
   useDailyEvent("nonfatal-error", logEvent);
 
-  function enableBlur() {
+  const enableBlur = () => {
     if (!callObject || enableBlurClicked) {
       return;
     }
@@ -106,9 +116,9 @@ export default function App() {
         },
       },
     });
-  }
+  };
 
-  function enableBackground() {
+  const enableBackground = () => {
     if (!callObject || enableBackgroundClicked) {
       return;
     }
@@ -127,7 +137,7 @@ export default function App() {
         },
       },
     });
-  }
+  };
 
   // Join the room with the generated token
   const joinRoom = () => {
@@ -165,7 +175,7 @@ export default function App() {
       return;
     }
     callObject.load({
-      url: `https://${dailyRoomUrl}`,
+      url: dailyRoomUrl,
     });
   };
 
@@ -174,37 +184,39 @@ export default function App() {
       return;
     }
     callObject.preAuth({
-      url: `https://${dailyRoomUrl}`,
+      url: dailyRoomUrl,
     });
   };
 
   // Remove video elements and leave the room
-  function leaveRoom() {
+  const leaveRoom = () => {
     if (!callObject) {
       return;
     }
     callObject.leave().catch((err) => {
       console.error("Error leaving room:", err);
     });
-  }
+  };
 
   // change video device
-  function handleChangeVideoDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
+  const handleChangeVideoDevice = (
+    ev: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     console.log("--- changing video device");
     setCamera(ev.target.value);
-  }
+  };
 
   // change mic device
-  function handleChangeMicDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
-    console.log("--- changing mic device");
+  const handleChangeMicDevice = (ev: React.ChangeEvent<HTMLSelectElement>) => {
     setMicrophone(ev.target.value);
-  }
+  };
 
   // change speaker device
-  function handleChangeSpeakerDevice(ev: React.ChangeEvent<HTMLSelectElement>) {
-    console.log("--- changing speaker device");
+  const handleChangeSpeakerDevice = (
+    ev: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setSpeaker(ev?.target?.value);
-  }
+  };
 
   const stopCamera = () => {
     if (!callObject) {
@@ -224,20 +236,11 @@ export default function App() {
   const currentMicrophone = microphones.find((m) => m.selected);
   const currentSpeaker = speakers.find((s) => s.selected);
 
-  const hiddenParticipantCount = callObject?.participantCounts().hidden ?? 0;
-  const presentParticipantCount = callObject?.participantCounts().present ?? 0;
-
-  const participantCounts = hiddenParticipantCount + presentParticipantCount;
-
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
-  const [dailyMeetingToken, setDailyMeetingToken] = useState("");
-
-  const { startTranscription, stopTranscription } = useTranscription({
-    onTranscriptionAppData: logEvent,
-    onTranscriptionError: logEvent,
-    onTranscriptionStarted: logEvent,
-    onTranscriptionStopped: logEvent,
+  const { hidden, present } = useParticipantCounts({
+    onParticipantCountsUpdated: logEvent,
   });
+
+  const participantCounts = hidden + present;
 
   return (
     <>
