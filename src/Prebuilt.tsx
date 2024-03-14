@@ -1,11 +1,13 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DailyProvider, useCallFrame } from "@daily-co/daily-react";
 
 export const Prebuilt = () => {
+  const [yolo, setYolo] = useState(false);
   const callRef = useRef(null);
   const callFrame = useCallFrame({
     parentEl: callRef.current,
     options: {
+      url: "https://hush.daily.co/sfu",
       iframeStyle: {
         position: "fixed",
         top: "0",
@@ -14,12 +16,13 @@ export const Prebuilt = () => {
         height: "100%",
       },
     },
-    shouldCreateInstance: useCallback(
-      () => Boolean(callRef.current),
-      [callRef]
-    ),
+    shouldCreateInstance: useCallback(() => yolo, [yolo]),
   });
-  console.log(callRef.current);
+  useEffect(() => setYolo(true), []);
+  useEffect(() => {
+    if (!callFrame) return;
+    callFrame?.join();
+  }, [callFrame]);
   return (
     /*
      * Yes, you can pass a callFrame to DailyProvider!
