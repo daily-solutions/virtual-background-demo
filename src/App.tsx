@@ -369,6 +369,10 @@ export default function App() {
           sessionId={screen.session_id}
         />
       ))}
+      {participantIds.map((id) => (
+        // @ts-expect-error This works just fine but gives a typescript error
+        <DailyVideo type="customTrack" key={id} automirror sessionId={id} />
+      ))}
       <DailyAudio />
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
