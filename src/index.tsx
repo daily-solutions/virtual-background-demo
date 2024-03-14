@@ -1,8 +1,11 @@
-import { DailyProvider } from "@daily-co/daily-react";
+// import { DailyProvider } from "@daily-co/daily-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import App from "./App";
+// import App from "./App";
+
+import { Prebuilt } from "./Prebuilt";
+import { Stage } from "./Stage";
 
 const container = document.getElementById("root");
 
@@ -12,13 +15,18 @@ if (!container) {
 
 const root = createRoot(container);
 
+// Get the value of componentB from the url
+const urlParams = new URLSearchParams(window.location.search);
+const isStage = urlParams.get("isStage");
+
 root.render(
   <StrictMode>
-    <DailyProvider
+    {isStage ? <Stage /> : <Prebuilt />}
+    {/* <DailyProvider
       subscribeToTracksAutomatically={false}
       dailyConfig={{ useDevicePreferenceCookies: true }}
     >
       <App />
-    </DailyProvider>
+    </DailyProvider> */}
   </StrictMode>
 );
