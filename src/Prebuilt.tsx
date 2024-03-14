@@ -14,8 +14,12 @@ export const Prebuilt = () => {
         height: "100%",
       },
     },
-    shouldCreateInstance: useCallback(() => Boolean(callRef.current), []),
+    shouldCreateInstance: useCallback(
+      () => Boolean(callRef.current),
+      [callRef]
+    ),
   });
+  console.log(callRef.current);
   return (
     /*
      * Yes, you can pass a callFrame to DailyProvider!
