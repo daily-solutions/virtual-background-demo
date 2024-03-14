@@ -170,6 +170,18 @@ export default function App() {
     });
   };
 
+  const startCustomTrack = () => {
+    if (!callObject) {
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: true }).then((customTrack) => {
+      callObject.startCustomTrack({
+        track: customTrack.getVideoTracks()[0],
+        trackName: "customTrack",
+      });
+    });
+  };
+
   const load = () => {
     if (!callObject) {
       return;
@@ -273,6 +285,10 @@ export default function App() {
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
+        <button onClick={() => startCustomTrack()}>
+          Start Custom Track
+        </button>{" "}
+        <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
@@ -355,6 +371,10 @@ export default function App() {
           automirror
           sessionId={screen.session_id}
         />
+      ))}
+      {participantIds.map((id) => (
+        // @ts-expect-error This works just fine but gives a typescript error
+        <DailyVideo type="customTrack" key={id} automirror sessionId={id} />
       ))}
       <DailyAudio />
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
