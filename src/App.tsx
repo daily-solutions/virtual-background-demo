@@ -31,7 +31,7 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
@@ -348,7 +348,18 @@ export default function App() {
           Enable Background
         </button>
         <br />
-        <button onClick={() => startScreenShare()}>Start Screen Share</button>
+        <button
+          onClick={() =>
+            startScreenShare({
+              displayMediaOptions: {
+                // @ts-expect-error Non-standard and not supported in all browsers
+                preferCurrentTab: true,
+              },
+            })
+          }
+        >
+          Start Screen Share
+        </button>
         <button onClick={() => stopScreenShare()}>Stop Screen Share</button>
         <br />
         <button onClick={() => stopCamera()}>Camera Off</button>
