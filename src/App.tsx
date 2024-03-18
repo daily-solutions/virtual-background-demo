@@ -1,5 +1,8 @@
 import React, { useCallback, useState } from "react";
-import Daily, { DailyEventObject } from "@daily-co/daily-js";
+import Daily, {
+  DailyEventObject,
+  DailyEventObjectNetworkQualityEvent,
+} from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -12,6 +15,8 @@ import {
   useInputSettings,
   useNetwork,
   useRecording,
+  useReceiveSettings,
+  useSendSettings,
   useTranscription,
   useParticipantCounts,
 } from "@daily-co/daily-react";
@@ -31,7 +36,7 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
@@ -66,9 +71,61 @@ export default function App() {
     onTranscriptionStopped: logEvent,
   });
 
+  const { sendSettings, updateSendSettings } = useSendSettings({
+    onSendSettingsUpdated: logEvent,
+  });
+
+  const { receiveSettings, updateReceiveSettings } = useReceiveSettings({
+    onReceiveSettingsUpdated: logEvent,
+  });
+
+  const onNetworkQualityChange = useCallback(
+    (evt: DailyEventObjectNetworkQualityEvent) => {
+      logEvent(evt);
+
+      const { threshold } = evt;
+
+      // Update send settings based on network quality
+      switch (threshold) {
+        case "good":
+          updateReceiveSettings({ "*": { video: { layer: 0 } } });
+          updateSendSettings({
+            video: {
+              maxQuality: "high",
+            },
+          });
+          break;
+        case "low":
+          updateReceiveSettings({ "*": { video: { layer: 0 } } });
+          updateSendSettings({
+            video: {
+              maxQuality: "low",
+            },
+          });
+          break;
+        case "very-low":
+          // Turn off local video
+          console.log("Turning off local video");
+          // callObject?.setLocalVideo(false);
+          break;
+        default:
+          console.log("sendSettings: ", sendSettings);
+          console.log("receiveSettings: ", receiveSettings);
+          break;
+      }
+    },
+    [
+      logEvent,
+      receiveSettings,
+      sendSettings,
+      updateReceiveSettings,
+      updateSendSettings,
+    ]
+  );
+
   const network = useNetwork({
     onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
+    onNetworkQualityChange,
   });
 
   const { startRecording, stopRecording } = useRecording({
