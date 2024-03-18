@@ -88,7 +88,7 @@ export default function App() {
       // Update send settings based on network quality
       switch (threshold) {
         case "good":
-          updateReceiveSettings({ "*": { video: { layer: 0 } } });
+          updateReceiveSettings({ "*": { video: { layer: 2 } } });
           updateSendSettings({
             video: {
               maxQuality: "high",
