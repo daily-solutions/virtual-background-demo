@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectNetworkQualityEvent,
@@ -79,11 +79,18 @@ export default function App() {
     onReceiveSettingsUpdated: logEvent,
   });
 
+  const previousThreshold = useRef<"good" | "low" | "very-low">("good");
+
   const onNetworkQualityChange = useCallback(
     (evt: DailyEventObjectNetworkQualityEvent) => {
       logEvent(evt);
 
       const { threshold } = evt;
+
+      if (threshold === previousThreshold.current) {
+        console.log("same threshold skip");
+        return;
+      }
 
       // Update send settings based on network quality
       switch (threshold) {
@@ -113,6 +120,8 @@ export default function App() {
           console.log("receiveSettings: ", receiveSettings);
           break;
       }
+
+      previousThreshold.current = threshold;
     },
     [
       logEvent,
