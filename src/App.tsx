@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
@@ -31,7 +31,7 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
@@ -254,6 +254,8 @@ export default function App() {
 
   const participantCounts = hidden + present;
 
+  const isPermissionGranted = String(cameras.length + microphones.length > 0);
+
   return (
     <>
       <div className="App">
@@ -360,6 +362,7 @@ export default function App() {
           Start Transcription
         </button>
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
+        <p>Mic/Cam Permission Granted: {isPermissionGranted}</p>
       </div>
       {participantIds.map((id) => (
         <DailyVideo type="video" key={id} automirror sessionId={id} />
