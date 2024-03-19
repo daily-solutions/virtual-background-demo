@@ -105,6 +105,10 @@ export default function App() {
       return;
     }
 
+    callObject.on("access-state-updated", (event) => {
+      console.log(event);
+    });
+
     setEnableBlurClicked(true);
     setEnableBackgroundClicked(false);
 

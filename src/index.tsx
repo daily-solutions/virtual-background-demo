@@ -1,16 +1,19 @@
-import { DailyProvider } from "@daily-co/daily-react";
+// import { DailyProvider } from "@daily-co/daily-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import App from "./App";
+// import App from "./App";
+
+import { Prebuilt } from "./Prebuilt";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
 
 root.render(
   <StrictMode>
-    <DailyProvider dailyConfig={{ useDevicePreferenceCookies: true }}>
+    <Prebuilt />
+    {/* <DailyProvider dailyConfig={{ useDevicePreferenceCookies: true }}>
       <App />
-    </DailyProvider>
+    </DailyProvider> */}
   </StrictMode>
 );
