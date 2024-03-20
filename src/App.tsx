@@ -74,7 +74,7 @@ export default function App() {
     onNetworkQualityChange: logEvent,
   });
 
-  const { startRecording, stopRecording } = useRecording({
+  const { startRecording, stopRecording, updateRecording } = useRecording({
     onRecordingData: logEvent,
     onRecordingError: logEvent,
     onRecordingStarted: logEvent,
@@ -278,21 +278,6 @@ export default function App() {
     callObject.stopRemoteMediaPlayer(remoteMediaPlayerParticipant);
   };
 
-  const { startRecording, stopRecording, updateRecording } = useRecording({
-    onRecordingData(evt) {
-      logEvent(evt);
-    },
-    onRecordingStarted(evt) {
-      logEvent(evt);
-    },
-    onRecordingStopped(evt) {
-      logEvent(evt);
-    },
-    onRecordingError(evt) {
-      logEvent(evt);
-    },
-  });
-
   const handleStartRecording = () => {
     startRecording({
       layout: {
@@ -435,8 +420,6 @@ export default function App() {
         <br />
         <button onClick={() => stopCamera()}>Camera Off</button>
         <button onClick={() => updateCameraOn()}>Camera On</button> <br />
-        <button onClick={() => startRecording()}>Start Recording</button>
-        <button onClick={() => stopRecording()}>Stop Recording</button>
         <br />
         <button onClick={() => startTranscription()}>
           Start Transcription
@@ -462,6 +445,9 @@ export default function App() {
           automirror
           sessionId={screen.session_id}
         />
+      ))}
+      {participantIds.map((id) => (
+        <DailyVideo type="rmpVideo" key={id} automirror sessionId={id} />
       ))}
       {participantIds.map((id) => (
         // @ts-expect-error This works just fine but gives a typescript error
