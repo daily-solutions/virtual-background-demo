@@ -56,7 +56,7 @@ export default function App() {
   const { startScreenShare, stopScreenShare, screens } = useScreenShare();
 
   const logEvent = useCallback((evt: DailyEventObject) => {
-    console.log("logEvent: " + evt.action, evt);
+    console.log(`logEvent: ${evt.action}`, evt);
   }, []);
 
   const { startTranscription, stopTranscription } = useTranscription({
@@ -94,7 +94,7 @@ export default function App() {
   useDailyEvent("participant-left", logEvent);
 
   useDailyEvent("camera-error", logEvent);
-  useDailyEvent("error", (evt) => logEvent);
+  useDailyEvent("error", logEvent);
 
   // Error logging for background effects
   useDailyEvent("input-settings-updated", logEvent);
