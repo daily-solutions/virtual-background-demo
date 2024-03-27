@@ -56,7 +56,12 @@ export default function App() {
   const { startScreenShare, stopScreenShare, screens } = useScreenShare();
 
   const logEvent = useCallback((evt: DailyEventObject) => {
-    console.log(`logEvent: ${evt.action}`, evt);
+    if ("action" in evt) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      console.log(`logEvent: ${evt.action}`, evt);
+    } else {
+      console.log("logEvent:", evt);
+    }
   }, []);
 
   const { startTranscription, stopTranscription } = useTranscription({
@@ -115,6 +120,8 @@ export default function App() {
           config: { strength: 0.5 },
         },
       },
+    })?.catch((err) => {
+      console.error("Error enabling blur", err);
     });
   };
 
@@ -136,6 +143,8 @@ export default function App() {
           },
         },
       },
+    })?.catch((err) => {
+      console.error("Error enabling background image", err);
     });
   };
 
@@ -165,39 +174,57 @@ export default function App() {
       return;
     }
 
-    callObject.startCamera().then((res) => {
-      console.log("startCamera: ", res);
-    });
+    callObject
+      .startCamera()
+      .then((res) => {
+        console.log("startCamera: ", res);
+      })
+      .catch((err) => {
+        console.error("Error starting camera", err);
+      });
   };
 
   const startCustomTrack = () => {
     if (!callObject) {
       return;
     }
-    navigator.mediaDevices.getUserMedia({ video: true }).then((customTrack) => {
-      callObject.startCustomTrack({
-        track: customTrack.getVideoTracks()[0],
-        trackName: "customTrack",
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((customTrack) => {
+        return callObject.startCustomTrack({
+          track: customTrack.getVideoTracks()[0],
+          trackName: "customTrack",
+        });
+      })
+      .catch((err) => {
+        console.error("Error enabling customTrack", err);
       });
-    });
   };
 
   const load = () => {
     if (!callObject) {
       return;
     }
-    callObject.load({
-      url: dailyRoomUrl,
-    });
+    callObject
+      .load({
+        url: dailyRoomUrl,
+      })
+      .catch((err) => {
+        console.error("Error entering load step", err);
+      });
   };
 
   const preAuth = () => {
     if (!callObject) {
       return;
     }
-    callObject.preAuth({
-      url: dailyRoomUrl,
-    });
+    callObject
+      .preAuth({
+        url: dailyRoomUrl,
+      })
+      .catch((err) => {
+        console.error("Error entering preAuth", err);
+      });
   };
 
   // Remove video elements and leave the room
@@ -215,19 +242,25 @@ export default function App() {
     ev: React.ChangeEvent<HTMLSelectElement>
   ) => {
     console.log("--- changing video device");
-    setCamera(ev.target.value);
+    setCamera(ev.target.value)?.catch((err) => {
+      console.error("Error setting camera", err);
+    });
   };
 
   // change mic device
   const handleChangeMicDevice = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    setMicrophone(ev.target.value);
+    setMicrophone(ev.target.value)?.catch((err) => {
+      console.error("Error setting microphone", err);
+    });
   };
 
   // change speaker device
   const handleChangeSpeakerDevice = (
     ev: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setSpeaker(ev?.target?.value);
+    setSpeaker(ev?.target?.value)?.catch((err) => {
+      console.error("Error setting speaker", err);
+    });
   };
 
   const stopCamera = () => {
