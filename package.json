@@ -1,6 +1,6 @@
 {
-  "name": "cra-virtual-background",
-  "version": "0.1.0",
+  "name": "daily-react-kitchen-sink",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,9 +8,9 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.60.0",
-    "@daily-co/daily-react": "^0.17.3",
-    "@vitejs/plugin-react-swc": "^3.5.0",
+    "@daily-co/daily-js": "^0.61.1",
+    "@daily-co/daily-react": "^0.18.0",
+    "@vitejs/plugin-react-swc": "^3.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recoil": "^0.7.7"
@@ -18,13 +18,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
-    "serve": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "serve": "vite preview",
+    "test": "eslint src/"
   },
   "browserslist": {
     "production": [
@@ -39,17 +34,17 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@tsconfig/vite-react": "^3.0.2",
     "@types/node": "^18.11.18",
-    "@types/react-dom": "^18.0.10",
     "@types/react": "^18.0.26",
-    "eslint-config-react-app": "^7.0.1",
+    "@types/react-dom": "^18.0.10",
     "eslint": "^8.57.0",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.3",
+    "typescript-eslint": "^7.4.0",
+    "vite": "^5.2.6",
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-mkcert": "^1.17.4",
     "vite-plugin-svgr": "^4.2.0",
-    "vite-tsconfig-paths": "^4.2.3",
-    "vite": "^5.0.10"
+    "vite-tsconfig-paths": "^4.3.2"
   }
 }
