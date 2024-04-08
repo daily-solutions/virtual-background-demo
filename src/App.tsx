@@ -33,7 +33,7 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
@@ -123,6 +123,7 @@ export default function App() {
   useDailyEvent("left-meeting", logEvent);
 
   useDailyEvent("camera-error", logEvent);
+  useDailyEvent("error", logEvent);
 
   // Error logging for background effects
   useDailyEvent("input-settings-updated", logEvent);
