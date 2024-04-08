@@ -2,7 +2,6 @@ import React, { useCallback, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectParticipant,
-  DailyEventObjectParticipantLeft,
 } from "@daily-co/daily-js";
 
 import {
