@@ -5,18 +5,20 @@ import Daily, {
 } from "@daily-co/daily-js";
 
 import {
-  useDaily,
-  useDevices,
-  useDailyEvent,
-  useScreenShare,
-  DailyVideo,
-  useParticipantIds,
   DailyAudio,
+  DailyVideo,
+  useCPULoad,
+  useDaily,
+  useDailyError,
+  useDailyEvent,
+  useDevices,
   useInputSettings,
   useNetwork,
-  useRecording,
-  useTranscription,
   useParticipantCounts,
+  useParticipantIds,
+  useRecording,
+  useScreenShare,
+  useTranscription,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -43,7 +45,12 @@ export default function App() {
     setMicrophone,
     speakers,
     setSpeaker,
+    cameraError,
   } = useDevices();
+
+  if (cameraError) {
+    console.error("Camera error:", cameraError);
+  }
 
   const { errorMsg, updateInputSettings } = useInputSettings({
     onError(ev) {
@@ -90,8 +97,6 @@ export default function App() {
     onActiveSpeakerChange: logEvent,
   });
 
-  console.log("+++ participantIds", participantIds);
-
   const { startTranscription, stopTranscription } = useTranscription({
     onTranscriptionAppData: logEvent,
     onTranscriptionError: logEvent,
@@ -103,6 +108,14 @@ export default function App() {
     // onNetworkConnection: logEvent,
     // onNetworkQualityChange: logEvent,
   });
+
+  const cpuLoad = useCPULoad({
+    onCPULoadChange: logEvent,
+  });
+
+  if (cpuLoad.state !== "low") {
+    console.log("CPU Load:", cpuLoad);
+  }
 
   const { startRecording, stopRecording } = useRecording({
     onRecordingData: logEvent,
@@ -122,12 +135,18 @@ export default function App() {
   useDailyEvent("receive-settings-updated", logEvent);
   useDailyEvent("left-meeting", logEvent);
 
-  useDailyEvent("camera-error", logEvent);
   useDailyEvent("error", logEvent);
+
+  const { meetingError, nonFatalError } = useDailyError();
+  if (meetingError) {
+    logEvent(meetingError);
+  }
+  if (nonFatalError) {
+    logEvent(nonFatalError);
+  }
 
   // Error logging for background effects
   useDailyEvent("input-settings-updated", logEvent);
-  useDailyEvent("nonfatal-error", logEvent);
 
   const enableBlur = () => {
     if (!callObject || enableBlurClicked) {
