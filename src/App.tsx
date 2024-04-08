@@ -34,7 +34,7 @@ export default function App() {
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
   const [enableBackgroundClicked, setEnableBackgroundClicked] = useState(false);
-  const [dailyRoomUrl, setDailyRoomUrl] = useState("");
+  const [dailyRoomUrl, setDailyRoomUrl] = useState("https://hush.daily.co/sfu");
   const [dailyMeetingToken, setDailyMeetingToken] = useState("");
 
   const {
@@ -68,15 +68,30 @@ export default function App() {
   }, []);
 
   const participantIds = useParticipantIds({
-    onParticipantJoined: useCallback((ev: DailyEventObjectParticipant) => {
-      console.log("participant-joined", ev);
-    }, []),
-    onParticipantLeft: useCallback((ev: DailyEventObjectParticipantLeft) => {
-      console.log("participant-left", ev);
-    }, []),
+    onParticipantJoined: useCallback(
+      (ev: DailyEventObjectParticipant) => {
+        logEvent(ev);
+
+        if (!callObject) return;
+
+        callObject.updateParticipant(ev.participant.session_id, {
+          setSubscribedTracks: {
+            audio: true,
+            video: true,
+            custom: true,
+            screenAudio: true,
+            screenVideo: true,
+          },
+        });
+      },
+      [callObject]
+    ),
+    onParticipantLeft: logEvent,
     onParticipantUpdated: logEvent,
     onActiveSpeakerChange: logEvent,
   });
+
+  console.log("+++ participantIds", participantIds);
 
   const { startTranscription, stopTranscription } = useTranscription({
     onTranscriptionAppData: logEvent,
@@ -86,8 +101,8 @@ export default function App() {
   });
 
   const network = useNetwork({
-    onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
+    // onNetworkConnection: logEvent,
+    // onNetworkQualityChange: logEvent,
   });
 
   const { startRecording, stopRecording } = useRecording({
@@ -98,7 +113,7 @@ export default function App() {
   });
 
   useDailyEvent("joining-meeting", logEvent);
-  useDailyEvent("joined-meeting", logEvent);
+  // useDailyEvent("joined-meeting", logEvent);
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
@@ -110,7 +125,6 @@ export default function App() {
   useDailyEvent("left-meeting", logEvent);
 
   useDailyEvent("camera-error", logEvent);
-  useDailyEvent("error", logEvent);
 
   // Error logging for background effects
   useDailyEvent("input-settings-updated", logEvent);
