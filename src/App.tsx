@@ -1,19 +1,22 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Daily, { DailyEventObject } from "@daily-co/daily-js";
 
 import {
-  useDaily,
-  useDevices,
-  useDailyEvent,
-  useScreenShare,
-  DailyVideo,
-  useParticipantIds,
   DailyAudio,
+  DailyVideo,
+  useAudioLevel,
+  useAudioTrack,
+  useDaily,
+  useDailyEvent,
+  useDevices,
   useInputSettings,
+  useLocalSessionId,
   useNetwork,
-  useRecording,
-  useTranscription,
   useParticipantCounts,
+  useParticipantIds,
+  useRecording,
+  useScreenShare,
+  useTranscription,
 } from "@daily-co/daily-react";
 
 import "./styles.css";
@@ -287,6 +290,21 @@ export default function App() {
 
   const participantCounts = hidden + present;
 
+  const localSessionId = useLocalSessionId();
+
+  const audioTrack = useAudioTrack(localSessionId);
+
+  const volRef = useRef(null);
+
+  useAudioLevel(
+    audioTrack?.persistentTrack,
+    useCallback((volume) => {
+      // this volume number will be between 0 and 1
+      // give it a minimum scale of 0.15 to not completely disappear 👻
+      volRef.current.style.transform = `scale(${Math.max(0.15, volume)})`;
+    }, [])
+  );
+
   return (
     <>
       <div className="App">
@@ -410,6 +428,16 @@ export default function App() {
         <DailyVideo type="customTrack" key={id} automirror sessionId={id} />
       ))}
       <DailyAudio />
+      <div className="vol" ref={volRef} />
+      <style>{`
+        .vol {
+          border: 1px solid black;
+          border-radius: 100%;
+          height: 32px;
+          transition: transform 0.1s ease;
+          width: 32px;
+        }
+      `}</style>
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
       {errorMsg && <div id="errorMsg">{errorMsg}</div>}
