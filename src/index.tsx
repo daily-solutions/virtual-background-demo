@@ -14,7 +14,10 @@ const root = createRoot(container);
 
 root.render(
   <StrictMode>
-    <DailyProvider dailyConfig={{ useDevicePreferenceCookies: true }}>
+    <DailyProvider
+      subscribeToTracksAutomatically={false}
+      dailyConfig={{ useDevicePreferenceCookies: true }}
+    >
       <App />
     </DailyProvider>
   </StrictMode>

@@ -1,5 +1,8 @@
 import React, { useCallback, useState } from "react";
-import Daily, { DailyEventObject } from "@daily-co/daily-js";
+import Daily, {
+  DailyEventObject,
+  DailyEventObjectParticipant,
+} from "@daily-co/daily-js";
 
 import {
   useDaily,
@@ -26,7 +29,6 @@ export default function App() {
   const callObject = useDaily();
   // @ts-expect-error add callObject to window for debugging
   window.callObject = callObject;
-  const participantIds = useParticipantIds();
 
   const [inputSettingsUpdated, setInputSettingsUpdated] = useState(false);
   const [enableBlurClicked, setEnableBlurClicked] = useState(false);
@@ -64,6 +66,32 @@ export default function App() {
     }
   }, []);
 
+  const participantIds = useParticipantIds({
+    onParticipantJoined: useCallback(
+      (ev: DailyEventObjectParticipant) => {
+        logEvent(ev);
+
+        if (!callObject) return;
+
+        callObject.updateParticipant(ev.participant.session_id, {
+          setSubscribedTracks: {
+            audio: true,
+            video: true,
+            custom: true,
+            screenAudio: true,
+            screenVideo: true,
+          },
+        });
+      },
+      [callObject]
+    ),
+    onParticipantLeft: logEvent,
+    onParticipantUpdated: logEvent,
+    onActiveSpeakerChange: logEvent,
+  });
+
+  console.log("+++ participantIds", participantIds);
+
   const { startTranscription, stopTranscription } = useTranscription({
     onTranscriptionAppData: logEvent,
     onTranscriptionError: logEvent,
@@ -72,8 +100,8 @@ export default function App() {
   });
 
   const network = useNetwork({
-    onNetworkConnection: logEvent,
-    onNetworkQualityChange: logEvent,
+    // onNetworkConnection: logEvent,
+    // onNetworkQualityChange: logEvent,
   });
 
   const { startRecording, stopRecording } = useRecording({
@@ -83,10 +111,7 @@ export default function App() {
     onRecordingStopped: logEvent,
   });
 
-  useDailyEvent("participant-joined", logEvent);
   useDailyEvent("joining-meeting", logEvent);
-  useDailyEvent("joined-meeting", logEvent);
-  useDailyEvent("participant-updated", logEvent);
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
@@ -96,7 +121,6 @@ export default function App() {
   useDailyEvent("load-attempt-failed", logEvent);
   useDailyEvent("receive-settings-updated", logEvent);
   useDailyEvent("left-meeting", logEvent);
-  useDailyEvent("participant-left", logEvent);
 
   useDailyEvent("camera-error", logEvent);
   useDailyEvent("error", logEvent);
