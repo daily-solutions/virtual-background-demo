@@ -113,7 +113,6 @@ export default function App() {
   });
 
   useDailyEvent("joining-meeting", logEvent);
-  // useDailyEvent("joined-meeting", logEvent);
   useDailyEvent("track-started", logEvent);
   useDailyEvent("track-stopped", logEvent);
   useDailyEvent("started-camera", logEvent);
