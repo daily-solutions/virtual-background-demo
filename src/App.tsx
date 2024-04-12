@@ -1,12 +1,14 @@
 import React, { useCallback, useState } from "react";
 import Daily, {
   DailyEventObject,
+  DailyEventObjectAppMessage,
   DailyEventObjectParticipant,
 } from "@daily-co/daily-js";
 
 import {
   DailyAudio,
   DailyVideo,
+  useAppMessage,
   useCPULoad,
   useDaily,
   useDailyError,
@@ -330,6 +332,24 @@ export default function App() {
 
   const participantCounts = hidden + present;
 
+  interface ArrowAppMessage {
+    playSound: boolean;
+  }
+
+  const sendAppMessage = useAppMessage<ArrowAppMessage>({
+    onAppMessage: useCallback(
+      (event: DailyEventObjectAppMessage<ArrowAppMessage>) => {
+        logEvent(event);
+        if (event.data.playSound) {
+          new Audio("https://jameshush.com/arrow.mp3").play().catch((err) => {
+            console.error("Error playing sound", err);
+          });
+        }
+      },
+      []
+    ),
+  });
+
   return (
     <>
       <div className="App">
@@ -364,6 +384,17 @@ export default function App() {
         <button onClick={() => startCustomTrack()}>
           Start Custom Track
         </button>{" "}
+        <button
+          onClick={() => {
+            // App messages aren't sent to the local user, so we'll play the sound here
+            new Audio("https://jameshush.com/arrow.mp3").play().catch((err) => {
+              console.error("Error playing sound", err);
+            });
+            sendAppMessage({ playSound: true });
+          }}
+        >
+          ARROW
+        </button>
         <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
