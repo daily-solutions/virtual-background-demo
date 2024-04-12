@@ -87,6 +87,8 @@ export default function App() {
             custom: true,
             screenAudio: true,
             screenVideo: true,
+            // @ts-expect-error rmp is in beta
+            rmpAudio: true,
           },
         });
       },
@@ -96,6 +98,12 @@ export default function App() {
     onParticipantUpdated: logEvent,
     onActiveSpeakerChange: logEvent,
   });
+
+  const remoteMediaPlayerParticipant = useParticipantIds({
+    filter: (p) => p.participantType === "remote-media-player",
+  })[0];
+
+  useDailyEvent("remote-media-player-stopped", logEvent);
 
   const { startTranscription, stopTranscription } = useTranscription({
     onTranscriptionAppData: logEvent,
@@ -117,7 +125,7 @@ export default function App() {
     console.log("CPU Load:", cpuLoad);
   }
 
-  const { startRecording, stopRecording } = useRecording({
+  const { startRecording, stopRecording, updateRecording } = useRecording({
     onRecordingData: logEvent,
     onRecordingError: logEvent,
     onRecordingStarted: logEvent,
@@ -337,7 +345,20 @@ export default function App() {
     }
     callObject
       .startRemoteMediaPlayer({
-        url: videoUrl,
+        url: "https://jameshush.com/test-song.mp3",
+      })
+      .catch((err) => {
+        console.error("Error starting remote media player:", err);
+      });
+  };
+
+  const startRemoteMediaArrow = () => {
+    if (!callObject) {
+      return;
+    }
+    callObject
+      .startRemoteMediaPlayer({
+        url: "https://jameshush.com/arrow.mp3",
       })
       .catch((err) => {
         console.error("Error starting remote media player:", err);
@@ -348,7 +369,11 @@ export default function App() {
     if (!callObject || !remoteMediaPlayerParticipant) {
       return;
     }
-    callObject.stopRemoteMediaPlayer(remoteMediaPlayerParticipant);
+    callObject
+      .stopRemoteMediaPlayer(remoteMediaPlayerParticipant)
+      .catch((err) => {
+        console.error("Error stopping remote media player:", err);
+      });
   };
 
   const handleStartRecording = () => {
@@ -432,6 +457,9 @@ export default function App() {
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
+        <button onClick={() => startRemoteMedia()}>Start Song</button>
+        <button onClick={() => stopRemoteMedia()}>Stop Song</button>
+        <button onClick={() => startRemoteMediaArrow()}>Arrow!</button>
         <hr />
         <br />
         2. Select your device <br />
@@ -499,8 +527,6 @@ export default function App() {
         </button>
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
         <br />
-        <button onClick={() => startRemoteMedia()}>Start Remote Media</button>
-        <button onClick={() => stopRemoteMedia()}>Stop Remote Media</button>
         <button onClick={() => handleStartRecording()}>Start Recording</button>
         <button onClick={() => handleStopRecording()}>Stop Recording</button>
         <button onClick={() => handleUpdateRecording()}>
