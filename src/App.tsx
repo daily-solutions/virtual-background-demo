@@ -361,9 +361,7 @@ export default function App() {
         <button onClick={() => load()}>Load</button> <br />
         <button onClick={() => preAuth()}>Preauth</button> <br />
         <button onClick={() => startCamera()}>Start Camera</button> <br />
-        <button onClick={() => startCustomTrack()}>
-          Start Custom Track
-        </button>{" "}
+        <button onClick={() => startCustomTrack()}>Start Custom Track</button>
         <br />
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
