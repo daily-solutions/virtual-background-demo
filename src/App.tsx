@@ -89,6 +89,8 @@ export default function App() {
             screenVideo: true,
             // @ts-expect-error rmp is in beta
             rmpAudio: true,
+            // @ts-expect-error rmp is in beta
+            rmpVideo: true,
           },
         });
       },
@@ -345,7 +347,7 @@ export default function App() {
     }
     callObject
       .startRemoteMediaPlayer({
-        url: "https://jameshush.com/test-song.mp3",
+        url: videoUrl,
       })
       .catch((err) => {
         console.error("Error starting remote media player:", err);
@@ -381,12 +383,11 @@ export default function App() {
       layout: {
         preset: "custom",
         composition_params: {
-          mode: "single",
+          mode: "grid",
         },
-        // participants: {
-        //   video: participantIds,
-        //   audio: "*",
-        // },
+        participants: {
+          video: participantIds,
+        },
       },
     });
   };
@@ -455,7 +456,9 @@ export default function App() {
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
-        <button onClick={() => startRemoteMedia()}>Start Song</button>
+        <button onClick={() => startRemoteMedia()}>
+          Start Remote Media Player
+        </button>
         <button onClick={() => stopRemoteMedia()}>Stop Song</button>
         <button onClick={() => startRemoteMediaArrow()}>Arrow!</button>
         <hr />
