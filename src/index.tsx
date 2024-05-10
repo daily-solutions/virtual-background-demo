@@ -17,6 +17,17 @@ root.render(
     <DailyProvider
       subscribeToTracksAutomatically={false}
       dailyConfig={{ useDevicePreferenceCookies: true }}
+      sendSettings={{
+        video: {
+          encodings: {
+            low: {
+              maxBitrate: 2000 * 1000,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+            },
+          },
+        },
+      }}
     >
       <App />
     </DailyProvider>
