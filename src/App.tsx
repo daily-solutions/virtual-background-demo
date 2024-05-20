@@ -40,6 +40,7 @@ const MicVolumeVisualizer = () => {
     useCallback((volume) => {
       if (!volRef.current) return;
       volRef.current.style.transform = `scale(${Math.max(0.15, volume)})`;
+      console.log("volume", volume);
     }, [])
   );
 
@@ -345,6 +346,12 @@ export default function App() {
     callObject.setLocalVideo(true);
   };
 
+  const [unmountMicVolumeVisualizer, setUnmountMicVolumeVisualizer] =
+    useState<boolean>(true);
+  const toggleVisualizer = () => {
+    setUnmountMicVolumeVisualizer(!unmountMicVolumeVisualizer);
+  };
+
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
   const currentSpeaker = speakers.find((s) => s.selected);
@@ -391,6 +398,9 @@ export default function App() {
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
+        <button onClick={() => toggleVisualizer()}>
+          Toggle Audio Visualizer
+        </button>
         <hr />
         <br />
         2. Select your device <br />
@@ -476,7 +486,7 @@ export default function App() {
         <DailyVideo type="customTrack" key={id} automirror sessionId={id} />
       ))}
       <DailyAudio />
-      <MicVolumeVisualizer />
+      {unmountMicVolumeVisualizer ? null : <MicVolumeVisualizer />}
 
       <div id="meetingState">Meeting State: {callObject?.meetingState()}</div>
       {inputSettingsUpdated && <div>Input settings updated</div>}
