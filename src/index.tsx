@@ -15,7 +15,7 @@ if (!container) {
 
 const root = createRoot(container);
 
-// Get the value of componentB from the url
+// Get the value from the url
 const urlParams = new URLSearchParams(window.location.search);
 const isStage = urlParams.get("isStage");
 
