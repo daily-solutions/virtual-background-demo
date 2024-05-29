@@ -366,6 +366,24 @@ export default function App() {
         <button onClick={() => joinRoom()}>Join call</button> <br />
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
+        <button
+          onClick={() =>
+            callObject?.updateSendSettings({
+              screenVideo: "default-screen-video",
+            })
+          }
+        >
+          Default Screenshare
+        </button>
+        <button
+          onClick={() =>
+            callObject?.updateSendSettings({
+              screenVideo: "detail-optimized",
+            })
+          }
+        >
+          Detail Optimized Screenshare
+        </button>
         <hr />
         <br />
         2. Select your device <br />
