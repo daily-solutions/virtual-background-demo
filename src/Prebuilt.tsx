@@ -138,8 +138,12 @@ export const Prebuilt = () => {
     if (!callFrame) return;
     callFrame
       ?.join({
+        layoutConfig: {
+          grid: { maxTilesPerPage: 12 },
+        },
+        activeSpeakerMode: true,
         token:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyIjoiZGVtbyIsInAiOnsiY2EiOnRydWV9LCJkIjoiNjgzYjg5ZjQtYjFmZC00Zjk0LWI4NDUtZWYyNjY2ZTNlMjEzIiwiaWF0IjoxNzE2OTgzNzc3fQ.s4_L9chKyALjGk3BmgH76Q8Dy1n5zZJ6NI-VF0dURL8",
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyIjoiZGVtbyIsInVkIjoiQWRtaW4gVG9rZW4iLCJwIjp7ImNhIjp0cnVlfSwiZCI6IjY4M2I4OWY0LWIxZmQtNGY5NC1iODQ1LWVmMjY2NmUzZTIxMyIsImlhdCI6MTcxNjk5MTQwNn0.xUPGtWhASO9iD77Gl4NdlKEzJQAPDupdvUb1CmeoC5Y",
       })
       .catch((err) => {
         console.error("Error joining call", err);
