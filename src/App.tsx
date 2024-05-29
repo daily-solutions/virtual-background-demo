@@ -37,11 +37,14 @@ const MicVolumeVisualizer = () => {
 
   useAudioLevel(
     audioTrack?.persistentTrack,
-    useCallback((volume) => {
-      if (!volRef.current) return;
-      volRef.current.style.transform = `scale(${Math.max(0.15, volume)})`;
-      console.log("volume", volume);
-    }, [])
+    useCallback(
+      (volume) => {
+        if (!volRef.current) return;
+        volRef.current.style.transform = `scale(${Math.max(0.15, volume)})`;
+        console.log("volume", volume);
+      },
+      [volRef.current]
+    )
   );
 
   // Your audio track's audio volume visualized in a small circle,
