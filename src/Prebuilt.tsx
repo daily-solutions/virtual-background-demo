@@ -43,41 +43,43 @@ const ParticipantRow = ({ sessionId }: { sessionId: string }) => {
 
   const callObject = useDaily();
   return (
-    <ul>
-      <li>{participantName}</li>
-      <li>
-        {isStageFull ? (
-          <p>Stage is full</p>
-        ) : (
+    <li>
+      <ul>
+        <li>{participantName}</li>
+        <li>
+          {isStageFull ? (
+            <p>Stage is full, disable a participant's audio</p>
+          ) : (
+            <button
+              disabled={canSend}
+              onClick={() => {
+                callObject?.updateParticipant(sessionId, {
+                  updatePermissions: {
+                    canSend: new Set(["audio", "video"]),
+                  },
+                });
+              }}
+            >
+              Enable Audio
+            </button>
+          )}
+        </li>
+        <li>
           <button
-            disabled={canSend}
+            disabled={!canSend}
             onClick={() => {
               callObject?.updateParticipant(sessionId, {
                 updatePermissions: {
-                  canSend: new Set(["audio", "video"]),
+                  canSend: new Set(["video"]),
                 },
               });
             }}
           >
-            Allow Audio
+            Disable Audio
           </button>
-        )}
-      </li>
-      <li>
-        <button
-          disabled={!canSend}
-          onClick={() => {
-            callObject?.updateParticipant(sessionId, {
-              updatePermissions: {
-                canSend: new Set(["video"]),
-              },
-            });
-          }}
-        >
-          Deny Audio
-        </button>
-      </li>
-    </ul>
+        </li>
+      </ul>
+    </li>
   );
 };
 
@@ -102,14 +104,15 @@ const App = () => {
   const participantCount = useParticipantCounts();
 
   return (
-    <ul>
-      <li>{participantCount.present} participants</li>
-      <button>Raise Hand</button>
-      <button>Lower Hand</button>
-      {allParticipants.map((participantId) => (
-        <ParticipantRow key={participantId} sessionId={participantId} />
-      ))}
-    </ul>
+    <div>
+      <p>{participantCount.present} participants</p>
+
+      <ol>
+        {allParticipants.map((participantId) => (
+          <ParticipantRow key={participantId} sessionId={participantId} />
+        ))}
+      </ol>
+    </div>
   );
 };
 
