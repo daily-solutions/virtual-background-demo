@@ -39,13 +39,13 @@ const ParticipantRow = ({ sessionId }: { sessionId: string }) => {
   });
 
   // Change to 15 later
-  const isStageFull = canSendAudioParticipantIds.length > 2;
+  const isStageFull = canSendAudioParticipantIds.length > 15;
 
   const callObject = useDaily();
   return (
     <li>
+      {participantName}
       <ul>
-        <li>{participantName}</li>
         <li>
           {isStageFull ? (
             <p>Stage is full, disable a participant's audio</p>
@@ -138,6 +138,8 @@ export const Prebuilt = () => {
     if (!callFrame) return;
     callFrame
       ?.join({
+        startAudioOff: true,
+        startVideoOff: true,
         layoutConfig: {
           grid: { maxTilesPerPage: 12 },
         },
