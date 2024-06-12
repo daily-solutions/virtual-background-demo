@@ -4,6 +4,10 @@ import { Prebuilt } from "./Prebuilt";
 import { DailyProvider } from "@daily-co/daily-react";
 import App from "./App";
 
+import * as f from "pixi-live2d-display";
+
+console.log(f);
+
 const container = document.getElementById("root");
 
 if (!container) {

@@ -8,4 +8,7 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [react()],
+  optimizeDeps: {
+    include: ["pixi-live2d-display"],
+  },
 });
