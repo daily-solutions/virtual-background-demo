@@ -1,3 +1,5 @@
+/** @format */
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Prebuilt } from "./Prebuilt";
@@ -12,37 +14,69 @@ import { Live2DModel } from "pixi-live2d-display";
 // @ts-expect-error PIXI is not normally on the window object
 window.PIXI = PIXI;
 
-(async function () {
-  console.assert();
-  const view = document.getElementById("canvas") as HTMLCanvasElement;
-  const app = new PIXI.Application({
-    view,
-  });
+async function initializeLive2D() {
+	console.log("Initialised Live2D");
+	const root = document.getElementById("root");
+	if (!root) {
+		throw new Error("No root element found");
+	}
 
-  const model = await Live2DModel.from("shizuku.model.json");
+	let view = document.getElementById("canvas") as HTMLCanvasElement;
+	if (!view) {
+		view = document.createElement("canvas");
+		view.id = "canvas";
+		root.appendChild(view);
+	}
 
-  app.stage.addChild(model);
+	const app = new PIXI.Application({
+		view,
+		autoStart: true,
+		resizeTo: window,
+		backgroundColor: 0x333333,
+	});
 
-  // transforms
-  model.x = 100;
-  model.y = 100;
-  model.rotation = Math.PI;
-  model.skew.x = Math.PI;
-  model.scale.set(2, 2);
-  model.anchor.set(0.5, 0.5);
+	try {
+		const model = await Live2DModel.from(
+			"src/assets/Shizuku/shizuku.model.json"
+		);
+		console.log("Model loaded");
+		app.stage.addChild(model);
 
-  // interaction
-  model.on("hit", (hitAreas: any) => {
-    if (hitAreas.includes("body")) {
-      model.motion("tap_body");
-    }
-  });
-})();
+		// Calculate appropriate scales and positions
+		const scaleFactor = Math.min(
+			innerWidth / 3 / model.width,
+			innerHeight / 2 / model.height
+		);
+
+		model.scale.set(scaleFactor, scaleFactor);
+
+		model.x = innerWidth * 0.25 - (model.width * scaleFactor) / 2;
+		model.y = innerHeight * 0.5 - (model.height * scaleFactor) / 2;
+
+		// Enable dragging for the model
+		draggable(model);
+		console.log("Model draggable");
+
+		// Handle interaction
+		model.on("hit", (hitAreas: any) => {
+			if (hitAreas.includes("body")) {
+				model.motion("tap_body");
+			}
+			if (hitAreas.includes("head")) {
+				model.expression();
+			}
+		});
+	} catch (error) {
+		console.error("Error loading model:", error);
+	}
+}
+console.log("Before initialize live 2d");
+initializeLive2D();
 
 const container = document.getElementById("root");
 
 if (!container) {
-  throw new Error("No root element found");
+	throw new Error("No root element found");
 }
 
 const root = createRoot(container);
@@ -52,16 +86,33 @@ const urlParams = new URLSearchParams(window.location.search);
 const isPrebuilt = urlParams.get("prebuilt") ?? false;
 
 root.render(
-  <StrictMode>
-    {isPrebuilt ? (
-      <Prebuilt />
-    ) : (
-      <DailyProvider
-        subscribeToTracksAutomatically={false}
-        dailyConfig={{ useDevicePreferenceCookies: true }}
-      >
-        <App />
-      </DailyProvider>
-    )}
-  </StrictMode>
+	<StrictMode>
+		{isPrebuilt ? (
+			<Prebuilt />
+		) : (
+			<DailyProvider
+				subscribeToTracksAutomatically={false}
+				dailyConfig={{ useDevicePreferenceCookies: true }}
+			>
+				<App />
+			</DailyProvider>
+		)}
+	</StrictMode>
 );
+
+function draggable(model: any) {
+	model.buttonMode = true;
+	model.on("pointerdown", (e: any) => {
+		model.dragging = true;
+		model._pointerX = e.data.global.x - model.x;
+		model._pointerY = e.data.global.y - model.y;
+	});
+	model.on("pointermove", (e: any) => {
+		if (model.dragging) {
+			model.position.x = e.data.global.x - model._pointerX;
+			model.position.y = e.data.global.y - model._pointerY;
+		}
+	});
+	model.on("pointerupoutside", () => (model.dragging = false));
+	model.on("pointerup", () => (model.dragging = false));
+}
