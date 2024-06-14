@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectParticipant,
@@ -7,15 +7,12 @@ import Daily, {
 import {
   DailyAudio,
   DailyVideo,
-  useAudioLevel,
-  useAudioTrack,
   useCPULoad,
   useDaily,
   useDailyError,
   useDailyEvent,
   useDevices,
   useInputSettings,
-  useLocalSessionId,
   useNetwork,
   useParticipantCounts,
   useParticipantIds,
@@ -365,11 +362,9 @@ export default function App() {
   } else {
     console.log("MicVolumeVisualizer mounted");
     if (callObject) {
-      try {
-        callObject.startLocalAudioLevelObserver(200);
-      } catch (e) {
-        console.log("localAudioLevelObserver error: ", e);
-      }
+      callObject.startLocalAudioLevelObserver(200).catch((err) => {
+        console.log("localAudioLevelObserver error: ", err);
+      });
     }
   }
 
