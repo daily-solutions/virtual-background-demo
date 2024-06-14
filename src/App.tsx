@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Daily, {
   DailyEventObject,
   DailyEventObjectParticipant,
@@ -31,17 +31,32 @@ console.info("Daily supported Browser:");
 console.dir(Daily.supportedBrowser());
 
 const MicVolumeVisualizer = () => {
-  const localSessionId = useLocalSessionId();
-  const audioTrack = useAudioTrack(localSessionId);
   const volRef = useRef<HTMLDivElement>(null);
 
-  useAudioLevel(
-    audioTrack?.persistentTrack,
+  const callObject = useDaily();
+
+  useEffect(() => {
+    if (callObject) {
+      callObject.startLocalAudioLevelObserver(100);
+    }
+    return () => {
+      if (callObject) {
+        callObject.stopLocalAudioLevelObserver();
+      }
+    };
+  }, [callObject]);
+
+  useDailyEvent(
+    "local-audio-level",
     useCallback(
-      (volume) => {
-        if (!volRef.current) return;
-        volRef.current.style.transform = `scale(${Math.max(0.15, volume)})`;
-        console.log("volume", volume);
+      (ev) => {
+        if (volRef.current) {
+          volRef.current.style.transform = `scale(${Math.max(
+            0.15,
+            ev.audioLevel
+          )})`;
+          console.log("volume", ev.audioLevel);
+        }
       },
       [volRef.current]
     )
