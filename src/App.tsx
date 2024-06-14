@@ -33,19 +33,6 @@ console.dir(Daily.supportedBrowser());
 const MicVolumeVisualizer = () => {
   const volRef = useRef<HTMLDivElement>(null);
 
-  const callObject = useDaily();
-
-  useEffect(() => {
-    if (callObject) {
-      callObject.startLocalAudioLevelObserver(100);
-    }
-    return () => {
-      if (callObject) {
-        callObject.stopLocalAudioLevelObserver();
-      }
-    };
-  }, [callObject]);
-
   useDailyEvent(
     "local-audio-level",
     useCallback(
@@ -369,6 +356,22 @@ export default function App() {
   const toggleVisualizer = () => {
     setUnmountMicVolumeVisualizer(!unmountMicVolumeVisualizer);
   };
+
+  if (unmountMicVolumeVisualizer) {
+    console.log("MicVolumeVisualizer unmounted");
+    if (callObject) {
+      callObject.stopLocalAudioLevelObserver();
+    }
+  } else {
+    console.log("MicVolumeVisualizer mounted");
+    if (callObject) {
+      try {
+        callObject.startLocalAudioLevelObserver(200);
+      } catch (e) {
+        console.log("localAudioLevelObserver error: ", e);
+      }
+    }
+  }
 
   const currentCamera = cameras.find((c) => c.selected);
   const currentMicrophone = microphones.find((m) => m.selected);
