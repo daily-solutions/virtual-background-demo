@@ -332,8 +332,10 @@ export default function App() {
 
   // Text box with submit that sets the state of the video url
   const [videoUrl, setVideoUrl] = useState(
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    "https://videoenginestoragedev.blob.core.windows.net/videoengine-event-785/165-5mb_17thJune_2.mp4"
   );
+  // "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+  // https://videoenginestoragedev.blob.core.windows.net/videoengine-event-785/165-5mb_17thJune_2.mp4
   // https://videoenginestoragedev.blob.core.windows.net/videoengine-event-522/revel_holiday_preshow.mp4
 
   const handleVideoUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -353,20 +355,7 @@ export default function App() {
         console.error("Error starting remote media player:", err);
       });
   };
-
-  const startRemoteMediaArrow = () => {
-    if (!callObject) {
-      return;
-    }
-    callObject
-      .startRemoteMediaPlayer({
-        url: "https://jameshush.com/arrow.mp3",
-      })
-      .catch((err) => {
-        console.error("Error starting remote media player:", err);
-      });
-  };
-
+  
   const stopRemoteMedia = () => {
     if (!callObject || !remoteMediaPlayerParticipant) {
       return;
@@ -462,7 +451,6 @@ export default function App() {
           Start Remote Media Player
         </button>
         <button onClick={() => stopRemoteMedia()}>Stop Song</button>
-        <button onClick={() => startRemoteMediaArrow()}>Arrow!</button>
         <hr />
         <br />
         2. Select your device <br />
