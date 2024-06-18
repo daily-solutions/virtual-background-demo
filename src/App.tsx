@@ -89,7 +89,6 @@ export default function App() {
             screenVideo: true,
             // @ts-expect-error rmp is in beta
             rmpAudio: true,
-            // @ts-expect-error rmp is in beta
             rmpVideo: true,
           },
         });
@@ -355,7 +354,7 @@ export default function App() {
         console.error("Error starting remote media player:", err);
       });
   };
-  
+
   const stopRemoteMedia = () => {
     if (!callObject || !remoteMediaPlayerParticipant) {
       return;
