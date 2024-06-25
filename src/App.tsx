@@ -372,21 +372,6 @@ export default function App() {
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <hr />
-        <button
-          onClick={() => {
-            if (!callObject) return;
-
-            callObject.updateParticipant("*", {
-              updatePermissions: {
-                canSend: ["audio", "video"],
-                canAdmin: false,
-                hasPresence: false,
-              },
-            });
-          }}
-        >
-          Toggle Permissions
-        </button>
         <br />
         2. Select your device <br />
         <select
@@ -456,7 +441,24 @@ export default function App() {
         <button onClick={() => stopTranscription()}>Stop Transcription</button>
       </div>
       {participantIds.map((id) => (
-        <DailyVideo type="video" key={id} automirror sessionId={id} />
+        <div key={id}>
+          <DailyVideo type="video" key={id} automirror sessionId={id} />
+          <button
+            onClick={() => {
+              if (!callObject) return;
+
+              callObject.updateParticipant(id, {
+                updatePermissions: {
+                  canSend: ["audio", "video"],
+                  canAdmin: false,
+                  hasPresence: false,
+                },
+              });
+            }}
+          >
+            Toggle Permissions
+          </button>
+        </div>
       ))}
       {screens.map((screen) => (
         <DailyVideo
