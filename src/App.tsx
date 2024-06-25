@@ -88,6 +88,11 @@ export default function App() {
             screenAudio: true,
             screenVideo: true,
           },
+          updatePermissions: {
+            canSend: ["audio", "video"],
+            canAdmin: false,
+            hasPresence: true,
+          },
         });
       },
       [callObject]
@@ -367,6 +372,21 @@ export default function App() {
         <button onClick={() => leaveRoom()}>Leave call</button>
         <br />
         <hr />
+        <button
+          onClick={() => {
+            if (!callObject) return;
+
+            callObject.updateParticipant("*", {
+              updatePermissions: {
+                canSend: ["audio", "video"],
+                canAdmin: false,
+                hasPresence: false,
+              },
+            });
+          }}
+        >
+          Toggle Permissions
+        </button>
         <br />
         2. Select your device <br />
         <select
