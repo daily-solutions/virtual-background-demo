@@ -88,11 +88,6 @@ export default function App() {
             screenAudio: true,
             screenVideo: true,
           },
-          updatePermissions: {
-            canSend: ["audio", "video"],
-            canAdmin: false,
-            hasPresence: true,
-          },
         });
       },
       [callObject]
